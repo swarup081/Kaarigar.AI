@@ -24,21 +24,12 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarStyle: styles.tabBar,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textLight,
         tabBarLabelStyle: styles.tabLabel,
         tabBarIconStyle: styles.tabIcon,
-        headerStyle: {
-          backgroundColor: Colors.primary,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        headerTintColor: Colors.textOnPrimary,
-        headerTitleStyle: {
-          fontWeight: '600',
-          fontSize: Typography.sizes.xl,
-        },
       }}
     >
       <Tabs.Screen
@@ -67,6 +58,14 @@ export default function TabLayout() {
               </View>
             </View>
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: 'Channels',
+          headerTitle: 'Channels',
+          tabBarIcon: ({ focused }) => <TabBarIcon icon="📢" focused={focused} />,
         }}
       />
       <Tabs.Screen

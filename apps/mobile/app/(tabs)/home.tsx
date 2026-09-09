@@ -34,7 +34,9 @@ export default function HomeScreen() {
       {/* Greeting Card */}
       <View style={styles.greetingCard}>
         <Text style={styles.greeting}>
-          {t('home.greeting', { name: artisan.name })}
+          {artisan.name && artisan.name.trim() !== '' && artisan.name !== 'कारीगर'
+            ? t('home.greeting', { name: artisan.name })
+            : t('home.greetingFallback', 'Namaste!')}
         </Text>
 
         {/* Shop Progress */}

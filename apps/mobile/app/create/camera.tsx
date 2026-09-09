@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as FileSystem from 'expo-file-system';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, TouchTargets } from '@/constants/theme';
+import { Feather } from '@expo/vector-icons';
 
 // Conditional imports for native-only modules
 let CameraView: any = null;
@@ -218,23 +219,27 @@ export default function CameraScreen() {
           {/* Status Indicators */}
           <View style={styles.statusBar}>
             <View style={[styles.indicator, readiness.light === 'good' ? styles.indicatorGood : styles.indicatorBad]}>
-              <Text style={styles.indicatorIcon}>
-                {readiness.light === 'good' ? '️' : ''}
-              </Text>
+              <View style={styles.indicatorIcon}>
+                {readiness.light === 'good' ? <Feather name="sun" size={16} color="#000" /> : <Feather name="moon" size={16} color="#fff" />}
+              </View>
               <Text style={styles.indicatorText}>
                 {readiness.light === 'good' ? 'Good' : 'Low'}
               </Text>
             </View>
 
             <View style={[styles.indicator, readiness.level ? styles.indicatorGood : styles.indicatorBad]}>
-              <Text style={styles.indicatorIcon}>{readiness.level ? '' : ''}</Text>
+              <View style={styles.indicatorIcon}>
+                {readiness.level ? <Feather name="check-circle" size={16} color="#000" /> : <Feather name="alert-circle" size={16} color="#fff" />}
+              </View>
               <Text style={styles.indicatorText}>
                 {readiness.level ? 'Level' : 'Tilt'}
               </Text>
             </View>
 
             <View style={[styles.indicator, readiness.steady ? styles.indicatorGood : styles.indicatorBad]}>
-              <Text style={styles.indicatorIcon}>{readiness.steady ? '' : ''}</Text>
+              <View style={styles.indicatorIcon}>
+                {readiness.steady ? <Feather name="anchor" size={16} color="#000" /> : <Feather name="activity" size={16} color="#fff" />}
+              </View>
               <Text style={styles.indicatorText}>
                 {readiness.steady ? 'Steady' : 'Shaking'}
               </Text>
@@ -244,7 +249,7 @@ export default function CameraScreen() {
           {/* Angle prompt */}
           <View style={styles.anglePrompt}>
             <Text style={styles.angleText}>
-               {currentAngle === 0 ? 'Front View' : currentAngle === 1 ? 'Back View' : 'Detail / Close-up'}
+               <Feather name="camera" size={16} color="#fff" /> {currentAngle === 0 ? 'Front View' : currentAngle === 1 ? 'Back View' : 'Detail / Close-up'}
             </Text>
             <Text style={styles.photoCount}>
               Photo {photos.length + 1} of {MAX_PHOTOS}
@@ -253,7 +258,7 @@ export default function CameraScreen() {
         </CameraView>
       ) : (
         <View style={[styles.camera, { backgroundColor: '#333', alignItems: 'center', justifyContent: 'center' }]}>
-          <Text style={{ color: '#fff', fontSize: 48 }}></Text>
+          <Feather name="camera-off" size={48} color="#fff" />
           <Text style={{ color: '#fff', fontSize: 16, marginTop: 8 }}>Camera loading...</Text>
         </View>
       )}
@@ -275,7 +280,7 @@ export default function CameraScreen() {
           activeOpacity={0.7}
         >
           <View style={styles.captureButtonInner}>
-            <Text style={styles.captureButtonText}>{isCapturing ? '' : ''}</Text>
+            {isCapturing ? <Feather name="clock" size={32} color="#000" /> : <Feather name="camera" size={32} color="#000" />}
           </View>
         </TouchableOpacity>
 
@@ -323,7 +328,9 @@ const styles = StyleSheet.create({
   centerCross: {
     position: 'absolute', top: '50%', left: '50%',
     marginTop: -15, marginLeft: -15, width: 30, height: 30,
-    alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   centerCrossText: { color: 'rgba(255,255,255,0.5)', fontSize: 28, fontWeight: '200' },
   statusBar: {
@@ -337,7 +344,7 @@ const styles = StyleSheet.create({
   },
   indicatorGood: { backgroundColor: 'rgba(46, 125, 50, 0.85)' },
   indicatorBad: { backgroundColor: 'rgba(198, 40, 40, 0.7)' },
-  indicatorIcon: { fontSize: 14 },
+  indicatorIcon: { alignItems: 'center', justifyContent: 'center' },
   indicatorText: { color: '#fff', fontSize: 11, fontWeight: Typography.weights.medium },
   anglePrompt: { position: 'absolute', bottom: 20, left: Spacing.xl, right: Spacing.xl, alignItems: 'center' },
   angleText: {

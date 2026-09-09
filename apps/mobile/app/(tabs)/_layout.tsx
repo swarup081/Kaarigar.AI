@@ -54,7 +54,13 @@ export default function TabLayout() {
         name="create"
         options={{
           title: 'Add',
-          tabBarIcon: ({ focused }) => <TabBarIcon icon="plus-circle" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.createButtonContainer}>
+              <View style={styles.createButton}>
+                <Feather name="camera" size={36} color="#FFFFFF" />
+              </View>
+            </View>
+          ),
         }}
       />
       
@@ -94,5 +100,25 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  createButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -32,
+  },
+  createButton: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#7C3AED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    borderWidth: 4,
+    borderColor: '#FAFAFA',
   },
 });

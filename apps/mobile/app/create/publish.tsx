@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Feather } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { CHANNELS, type ChannelConfig } from '@/constants/channels';
 
@@ -41,7 +42,7 @@ export default function PublishScreen() {
   if (isPublished) {
     return (
       <View style={styles.successContainer}>
-        <Text style={styles.successIcon}></Text>
+        <Feather name="check-circle" size={64} color="#10B981" style={{ marginBottom: 16 }} />
         <Text style={styles.successTitle}>{t('publish.published')}</Text>
         <Text style={styles.successSubtitle}>
           Published to {selectedChannels.length} channel{selectedChannels.length > 1 ? 's' : ''}
@@ -58,7 +59,7 @@ export default function PublishScreen() {
           style={styles.shareButton}
           onPress={() => {/* TODO: WhatsApp share */}}
         >
-          <Text style={styles.shareButtonIcon}></Text>
+          <Feather name="message-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
           <Text style={styles.shareButtonText}>Share on WhatsApp</Text>
         </TouchableOpacity>
 
@@ -66,7 +67,8 @@ export default function PublishScreen() {
           style={styles.addAnotherButton}
           onPress={() => router.replace('/create/camera')}
         >
-          <Text style={styles.addAnotherText}> Add another product</Text>
+          <Feather name="plus" size={16} color={Colors.primary} style={{ marginRight: 8 }} />
+          <Text style={styles.addAnotherText}>Add another product</Text>
         </TouchableOpacity>
       </View>
     );
@@ -76,8 +78,9 @@ export default function PublishScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}> {t('common.back')}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Feather name="arrow-left" size={20} color={Colors.primary} style={{ marginRight: 4 }} />
+          <Text style={styles.backButton}>{t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.stepIndicator}>5 / 5</Text>
       </View>
@@ -109,7 +112,7 @@ export default function PublishScreen() {
               {channel.mvpReady ? (
                 selectedChannels.includes(channel.id) ? (
                   <View style={styles.checkmark}>
-                    <Text style={styles.checkmarkText}></Text>
+                    <Feather name="check" size={12} color="#fff" />
                   </View>
                 ) : (
                   <View style={styles.unchecked} />

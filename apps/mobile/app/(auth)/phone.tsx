@@ -1,13 +1,9 @@
-// ============================================
-// Kaarigar — Phone Number Entry
-// Firebase Phone Auth — OTP-based login
-// ============================================
-
-import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Colors, Typography, Spacing, BorderRadius, Shadows, TouchTargets } from '@/constants/theme';
+import { Feather } from '@expo/vector-icons';
 
 let Haptics: any = null;
 if (Platform.OS !== 'web') { try { Haptics = require('expo-haptics'); } catch (e) {} }
@@ -26,166 +22,170 @@ export default function PhoneScreen() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement Firebase Phone Auth
-      // const confirmation = await auth().signInWithPhoneNumber(`+91${phone}`);
-      // Store confirmation in context/zustand
-
-      // For now, navigate to OTP screen
+      // TODO: Firebase Phone Auth implementation (Phase 4)
+      
+      // Simulate network request for now
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       router.push('/(auth)/otp');
     } catch (error) {
-      console.error('Failed to send OTP:', error);
+      console.error(error);
+      if (Haptics) await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.content}>
-        {/* Back button */}
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>← {t('common.back')}</Text>
-        </TouchableOpacity>
-
-        {/* Icon */}
-        <Text style={styles.icon}>📱</Text>
-
-        {/* Title */}
-        <Text style={styles.title}>{t('auth.enterPhone')}</Text>
-
-        {/* Phone Input */}
-        <View style={styles.phoneInputContainer}>
-          <View style={styles.countryCode}>
-            <Text style={styles.countryFlag}>🇮🇳</Text>
-            <Text style={styles.countryCodeText}>+91</Text>
-          </View>
-          <TextInput
-            style={styles.phoneInput}
-            value={phone}
-            onChangeText={(text) => setPhone(text.replace(/\D/g, '').slice(0, 10))}
-            placeholder="9876543210"
-            placeholderTextColor={Colors.textLight}
-            keyboardType="phone-pad"
-            maxLength={10}
-            autoFocus
-          />
-        </View>
-
-        {/* Send OTP Button */}
-        <TouchableOpacity
-          style={[styles.sendButton, !isValid && styles.sendButtonDisabled]}
-          onPress={handleSendOTP}
-          disabled={!isValid || isLoading}
-          activeOpacity={0.8}
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
         >
-          <Text style={styles.sendButtonText}>
-            {isLoading ? '...' : t('auth.sendOtp')}
-          </Text>
+          <Feather name="arrow-left" size={24} color="#111827" />
         </TouchableOpacity>
 
-        {/* Subtle note */}
-        <Text style={styles.note}>
-          We'll send a one-time code to verify your number
-        </Text>
-      </View>
-    </KeyboardAvoidingView>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.iconWrapper}>
+              <Feather name="smartphone" size={28} color="#7C3AED" />
+            </View>
+            <Text style={styles.title}>{t('auth.enterPhone', 'Enter your mobile number')}</Text>
+            <Text style={styles.subtitle}>{t('auth.phoneSub', 'We will send you a 6-digit verification code.')}</Text>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <View style={styles.countryCode}>
+              <Text style={styles.flag}>🇮🇳</Text>
+              <Text style={styles.countryText}>+91</Text>
+            </View>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+              maxLength={10}
+              placeholder="99999 99999"
+              placeholderTextColor="#9CA3AF"
+              autoFocus
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, !isValid && styles.buttonDisabled]}
+            onPress={handleSendOTP}
+            disabled={!isValid || isLoading}
+            activeOpacity={0.8}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={styles.buttonText}>{t('auth.sendOtp', 'Get OTP')}</Text>
+                <Feather name="arrow-right" size={20} color="#FFFFFF" />
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+  },
+  backButton: {
+    padding: 16,
+    alignSelf: 'flex-start',
   },
   content: {
     flex: 1,
-    padding: Spacing.xl,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+  },
+  header: {
+    marginBottom: 40,
+  },
+  iconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#F3E8FF',
     justifyContent: 'center',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 60,
-    left: Spacing.xl,
-  },
-  backButtonText: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.primary,
-    fontWeight: Typography.weights.medium,
-  },
-  icon: {
-    fontSize: 64,
-    textAlign: 'center',
-    marginBottom: Spacing.xl,
+    alignItems: 'center',
+    marginBottom: 24,
   },
   title: {
-    fontSize: Typography.sizes.xxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Spacing.xxl,
+    fontFamily: 'serif',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 8,
   },
-  phoneInputContainer: {
+  subtitle: {
+    fontSize: 15,
+    color: '#6B7280',
+    lineHeight: 22,
+  },
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.xl,
-    gap: Spacing.md,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    backgroundColor: '#F9FAFB',
+    height: 60,
+    marginBottom: 40,
+    paddingHorizontal: 16,
   },
   countryCode: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    gap: Spacing.sm,
-    borderWidth: 2,
-    borderColor: Colors.border,
+    paddingRight: 16,
+    borderRightWidth: 1,
+    borderRightColor: '#E5E7EB',
+    marginRight: 16,
   },
-  countryFlag: {
-    fontSize: 24,
+  flag: {
+    fontSize: 20,
+    marginRight: 8,
   },
-  countryCodeText: {
-    fontSize: Typography.sizes.xl,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.text,
+  countryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
   },
-  phoneInput: {
+  input: {
     flex: 1,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    fontSize: Typography.sizes.xxl,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.text,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    letterSpacing: 2,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#111827',
+    height: '100%',
   },
-  sendButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.lg,
+  button: {
+    backgroundColor: '#000000',
+    height: 56,
+    borderRadius: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    minHeight: TouchTargets.minimum,
     justifyContent: 'center',
-    ...Shadows.card,
+    gap: 8,
   },
-  sendButtonDisabled: {
-    backgroundColor: Colors.offline,
+  buttonDisabled: {
+    backgroundColor: '#E5E7EB',
   },
-  sendButtonText: {
-    color: Colors.textOnPrimary,
-    fontSize: Typography.sizes.xl,
-    fontWeight: Typography.weights.bold,
-  },
-  note: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textLight,
-    textAlign: 'center',
-    marginTop: Spacing.lg,
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

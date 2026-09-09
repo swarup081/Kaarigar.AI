@@ -87,7 +87,7 @@ export default function VoiceScreen() {
       stopPulse();
 
       // TODO: Replace with actual expo-audio stop + save
-      const mockUri = `${FileSystem.documentDirectory}recordings/voice_${Date.now()}.m4a`;
+      const mockUri = `${(FileSystem as any).documentDirectory}recordings/voice_${Date.now()}.m4a`;
       setRecordingUri(mockUri);
       setState('recorded');
 

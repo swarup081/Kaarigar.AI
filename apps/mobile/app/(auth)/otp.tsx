@@ -1,13 +1,9 @@
-// ============================================
-// Kaarigar — OTP Verification Screen
-// 6-digit OTP input with auto-fill
-// ============================================
-
-import { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Colors, Typography, Spacing, BorderRadius, Shadows, TouchTargets } from '@/constants/theme';
+import { Feather } from '@expo/vector-icons';
 
 let Haptics: any = null;
 if (Platform.OS !== 'web') { try { Haptics = require('expo-haptics'); } catch (e) {} }
@@ -18,135 +14,231 @@ export default function OTPScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const [otp, setOtp] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
+  const isValid = otp.length === OTP_LENGTH && /^\d+$/.test(otp);
+
+  useEffect(() => {
+    // Auto-verify when OTP is complete
+    if (isValid) {
+      handleVerify();
+    }
+  }, [otp]);
+
   const handleVerify = async () => {
-    if (otp.length !== OTP_LENGTH) return;
+    if (!isValid) return;
     if (Haptics) await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setIsVerifying(true);
+    setIsLoading(true);
 
     try {
-      // TODO: Verify OTP with Firebase
-      // await confirmation.confirm(otp);
-
+      // TODO: Firebase Phone Auth confirm (Phase 4)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
       if (Haptics) await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(auth)/setup-profile');
+      
+      // Determine if new user -> setup profile, else -> home
+      const isNewUser = true; 
+      if (isNewUser) {
+        router.push('/(auth)/setup-profile');
+      } else {
+        router.replace('/(tabs)/home');
+      }
     } catch (error) {
-      console.error('OTP verification failed:', error);
+      console.error(error);
       if (Haptics) await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setOtp('');
+      inputRef.current?.focus();
     } finally {
-      setIsVerifying(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.content}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>← {t('common.back')}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Feather name="arrow-left" size={24} color="#111827" />
         </TouchableOpacity>
 
-        <Text style={styles.icon}>🔐</Text>
-        <Text style={styles.title}>{t('auth.enterOtp')}</Text>
-
-        {/* OTP Input — visual boxes */}
-        <TouchableOpacity
-          style={styles.otpContainer}
-          activeOpacity={1}
-          onPress={() => inputRef.current?.focus()}
-        >
-          {Array.from({ length: OTP_LENGTH }).map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.otpBox,
-                i < otp.length && styles.otpBoxFilled,
-                i === otp.length && styles.otpBoxActive,
-              ]}
-            >
-              <Text style={styles.otpDigit}>
-                {otp[i] ?? ''}
-              </Text>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.iconWrapper}>
+              <Feather name="message-square" size={28} color="#7C3AED" />
             </View>
-          ))}
-          {/* Hidden input for keyboard */}
-          <TextInput
-            ref={inputRef}
-            style={styles.hiddenInput}
-            value={otp}
-            onChangeText={(text) => setOtp(text.replace(/\D/g, '').slice(0, OTP_LENGTH))}
-            keyboardType="number-pad"
-            maxLength={OTP_LENGTH}
-            autoFocus
-            textContentType="oneTimeCode"
-            autoComplete="sms-otp"
-          />
-        </TouchableOpacity>
+            <Text style={styles.title}>{t('auth.enterOtp', 'Verify your number')}</Text>
+            <Text style={styles.subtitle}>
+              {t('auth.otpSub', 'We sent a 6-digit code to your phone.')}
+            </Text>
+          </View>
 
-        {/* Verify Button */}
-        <TouchableOpacity
-          style={[styles.verifyButton, otp.length !== OTP_LENGTH && styles.verifyButtonDisabled]}
-          onPress={handleVerify}
-          disabled={otp.length !== OTP_LENGTH || isVerifying}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.verifyButtonText}>
-            {isVerifying ? '...' : t('auth.verifyOtp')}
-          </Text>
-        </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            <TextInput
+              ref={inputRef}
+              style={styles.hiddenInput}
+              value={otp}
+              onChangeText={setOtp}
+              keyboardType="number-pad"
+              maxLength={OTP_LENGTH}
+              autoFocus
+            />
+            
+            <View style={styles.otpGrid}>
+              {[...Array(OTP_LENGTH)].map((_, i) => (
+                <View 
+                  key={i} 
+                  style={[
+                    styles.otpBox,
+                    otp.length === i && styles.otpBoxActive,
+                    otp.length > i && styles.otpBoxFilled,
+                  ]}
+                >
+                  <Text style={styles.otpText}>
+                    {otp[i] || ''}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
 
-        {/* Resend */}
-        <TouchableOpacity style={styles.resendButton}>
-          <Text style={styles.resendText}>Didn't get OTP? Resend</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+          <TouchableOpacity
+            style={[styles.button, !isValid && styles.buttonDisabled]}
+            onPress={handleVerify}
+            disabled={!isValid || isLoading}
+            activeOpacity={0.8}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={styles.buttonText}>{t('auth.verify', 'Verify & Continue')}</Text>
+                <Feather name="arrow-right" size={20} color="#FFFFFF" />
+              </>
+            )}
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.resendButton}>
+            <Text style={styles.resendText}>Didn't receive code? <Text style={styles.resendHighlight}>Resend</Text></Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  content: { flex: 1, padding: Spacing.xl, justifyContent: 'center' },
-  backButton: { position: 'absolute', top: 60, left: Spacing.xl },
-  backButtonText: { fontSize: Typography.sizes.lg, color: Colors.primary, fontWeight: Typography.weights.medium },
-  icon: { fontSize: 64, textAlign: 'center', marginBottom: Spacing.xl },
-  title: { fontSize: Typography.sizes.xxl, fontWeight: Typography.weights.bold, color: Colors.text, textAlign: 'center', marginBottom: Spacing.xxl },
-  otpContainer: {
-    flexDirection: 'row',
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  container: {
+    flex: 1,
+  },
+  backButton: {
+    padding: 16,
+    alignSelf: 'flex-start',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+  },
+  header: {
+    marginBottom: 40,
+  },
+  iconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#F3E8FF',
     justifyContent: 'center',
-    gap: Spacing.md,
-    marginBottom: Spacing.xxl,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontFamily: 'serif',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#6B7280',
+    lineHeight: 22,
+  },
+  inputContainer: {
+    marginBottom: 40,
     position: 'relative',
   },
+  hiddenInput: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
+  otpGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
   otpBox: {
-    width: 48,
+    flex: 1,
+    aspectRatio: 0.8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  otpBoxActive: {
+    borderColor: '#7C3AED',
+    backgroundColor: '#F3E8FF',
+  },
+  otpBoxFilled: {
+    borderColor: '#111827',
+    backgroundColor: '#FFFFFF',
+  },
+  otpText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  button: {
+    backgroundColor: '#000000',
     height: 56,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surface,
-    borderWidth: 2,
-    borderColor: Colors.border,
+    borderRadius: 16,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+    marginBottom: 24,
   },
-  otpBoxFilled: { borderColor: Colors.primary, backgroundColor: '#FFF3E0' },
-  otpBoxActive: { borderColor: Colors.primary, borderWidth: 3 },
-  otpDigit: { fontSize: Typography.sizes.xxl, fontWeight: Typography.weights.bold, color: Colors.text },
-  hiddenInput: { position: 'absolute', opacity: 0, width: 1, height: 1 },
-  verifyButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.lg,
+  buttonDisabled: {
+    backgroundColor: '#E5E7EB',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  resendButton: {
     alignItems: 'center',
-    minHeight: TouchTargets.minimum,
-    justifyContent: 'center',
-    ...Shadows.card,
+    padding: 8,
   },
-  verifyButtonDisabled: { backgroundColor: Colors.offline },
-  verifyButtonText: { color: Colors.textOnPrimary, fontSize: Typography.sizes.xl, fontWeight: Typography.weights.bold },
-  resendButton: { alignItems: 'center', marginTop: Spacing.xl },
-  resendText: { fontSize: Typography.sizes.md, color: Colors.accent },
+  resendText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  resendHighlight: {
+    color: '#7C3AED',
+    fontWeight: '600',
+  },
 });

@@ -15,6 +15,10 @@ web-build/
 ios/
 android/
 
+# Firebase (contains API keys — NEVER commit)
+**/google-services.json
+**/GoogleService-Info.plist
+
 # Supabase
 apps/backend/supabase/.temp/
 apps/backend/supabase/.branches/

@@ -171,7 +171,7 @@ export default function CameraScreen() {
   if (Platform.OS === 'web' || hasPermission === false) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.permissionIcon}>📸</Text>
+        <Text style={styles.permissionIcon}></Text>
         <Text style={styles.permissionText}>
           {Platform.OS === 'web'
             ? 'Camera is only available on your phone.\nOpen this app on your device to use the camera.'
@@ -182,13 +182,13 @@ export default function CameraScreen() {
           style={styles.skipButton}
           onPress={() => router.push('/create/voice')}
         >
-          <Text style={styles.skipButtonText}>Skip to Voice Recording →</Text>
+          <Text style={styles.skipButtonText}>Skip to Voice Recording </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.skipButton, { backgroundColor: Colors.textLight, marginTop: Spacing.md }]}
           onPress={() => router.back()}
         >
-          <Text style={styles.skipButtonText}>← Go Back</Text>
+          <Text style={styles.skipButtonText}> Go Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -219,7 +219,7 @@ export default function CameraScreen() {
           <View style={styles.statusBar}>
             <View style={[styles.indicator, readiness.light === 'good' ? styles.indicatorGood : styles.indicatorBad]}>
               <Text style={styles.indicatorIcon}>
-                {readiness.light === 'good' ? '☀️' : '🌙'}
+                {readiness.light === 'good' ? '️' : ''}
               </Text>
               <Text style={styles.indicatorText}>
                 {readiness.light === 'good' ? 'Good' : 'Low'}
@@ -227,14 +227,14 @@ export default function CameraScreen() {
             </View>
 
             <View style={[styles.indicator, readiness.level ? styles.indicatorGood : styles.indicatorBad]}>
-              <Text style={styles.indicatorIcon}>{readiness.level ? '⊙' : '◎'}</Text>
+              <Text style={styles.indicatorIcon}>{readiness.level ? '' : ''}</Text>
               <Text style={styles.indicatorText}>
                 {readiness.level ? 'Level' : 'Tilt'}
               </Text>
             </View>
 
             <View style={[styles.indicator, readiness.steady ? styles.indicatorGood : styles.indicatorBad]}>
-              <Text style={styles.indicatorIcon}>{readiness.steady ? '✋' : '👋'}</Text>
+              <Text style={styles.indicatorIcon}>{readiness.steady ? '' : ''}</Text>
               <Text style={styles.indicatorText}>
                 {readiness.steady ? 'Steady' : 'Shaking'}
               </Text>
@@ -244,7 +244,7 @@ export default function CameraScreen() {
           {/* Angle prompt */}
           <View style={styles.anglePrompt}>
             <Text style={styles.angleText}>
-              📸 {currentAngle === 0 ? 'Front View' : currentAngle === 1 ? 'Back View' : 'Detail / Close-up'}
+               {currentAngle === 0 ? 'Front View' : currentAngle === 1 ? 'Back View' : 'Detail / Close-up'}
             </Text>
             <Text style={styles.photoCount}>
               Photo {photos.length + 1} of {MAX_PHOTOS}
@@ -253,7 +253,7 @@ export default function CameraScreen() {
         </CameraView>
       ) : (
         <View style={[styles.camera, { backgroundColor: '#333', alignItems: 'center', justifyContent: 'center' }]}>
-          <Text style={{ color: '#fff', fontSize: 48 }}>📸</Text>
+          <Text style={{ color: '#fff', fontSize: 48 }}></Text>
           <Text style={{ color: '#fff', fontSize: 16, marginTop: 8 }}>Camera loading...</Text>
         </View>
       )}
@@ -261,7 +261,7 @@ export default function CameraScreen() {
       {/* Bottom Controls */}
       <View style={styles.controls}>
         <TouchableOpacity style={styles.secondaryButton} onPress={() => router.back()}>
-          <Text style={styles.secondaryButtonText}>← Back</Text>
+          <Text style={styles.secondaryButtonText}> Back</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -275,7 +275,7 @@ export default function CameraScreen() {
           activeOpacity={0.7}
         >
           <View style={styles.captureButtonInner}>
-            <Text style={styles.captureButtonText}>{isCapturing ? '⏳' : '📸'}</Text>
+            <Text style={styles.captureButtonText}>{isCapturing ? '' : ''}</Text>
           </View>
         </TouchableOpacity>
 
@@ -289,7 +289,7 @@ export default function CameraScreen() {
           disabled={photos.length === 0}
         >
           <Text style={[styles.secondaryButtonText, photos.length === 0 && { opacity: 0.3 }]}>
-            Next →
+            Next 
           </Text>
         </TouchableOpacity>
       </View>

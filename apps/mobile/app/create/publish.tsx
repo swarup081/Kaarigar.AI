@@ -41,7 +41,7 @@ export default function PublishScreen() {
   if (isPublished) {
     return (
       <View style={styles.successContainer}>
-        <Text style={styles.successIcon}>🎉</Text>
+        <Text style={styles.successIcon}></Text>
         <Text style={styles.successTitle}>{t('publish.published')}</Text>
         <Text style={styles.successSubtitle}>
           Published to {selectedChannels.length} channel{selectedChannels.length > 1 ? 's' : ''}
@@ -58,7 +58,7 @@ export default function PublishScreen() {
           style={styles.shareButton}
           onPress={() => {/* TODO: WhatsApp share */}}
         >
-          <Text style={styles.shareButtonIcon}>💬</Text>
+          <Text style={styles.shareButtonIcon}></Text>
           <Text style={styles.shareButtonText}>Share on WhatsApp</Text>
         </TouchableOpacity>
 
@@ -66,7 +66,7 @@ export default function PublishScreen() {
           style={styles.addAnotherButton}
           onPress={() => router.replace('/create/camera')}
         >
-          <Text style={styles.addAnotherText}>➕ Add another product</Text>
+          <Text style={styles.addAnotherText}> Add another product</Text>
         </TouchableOpacity>
       </View>
     );
@@ -77,7 +77,7 @@ export default function PublishScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← {t('common.back')}</Text>
+          <Text style={styles.backButton}> {t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.stepIndicator}>5 / 5</Text>
       </View>
@@ -109,7 +109,7 @@ export default function PublishScreen() {
               {channel.mvpReady ? (
                 selectedChannels.includes(channel.id) ? (
                   <View style={styles.checkmark}>
-                    <Text style={styles.checkmarkText}>✅</Text>
+                    <Text style={styles.checkmarkText}></Text>
                   </View>
                 ) : (
                   <View style={styles.unchecked} />

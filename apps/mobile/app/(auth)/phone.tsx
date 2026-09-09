@@ -59,7 +59,7 @@ export default function PhoneScreen() {
 
           <View style={styles.inputContainer}>
             <View style={styles.countryCode}>
-              <Text style={styles.flag}>🇮🇳</Text>
+              <Text style={styles.flag}>IN</Text>
               <Text style={styles.countryText}>+91</Text>
             </View>
             <TextInput
@@ -109,8 +109,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    padding: 24,
+    justifyContent: 'center',
   },
   header: {
     marginBottom: 40,

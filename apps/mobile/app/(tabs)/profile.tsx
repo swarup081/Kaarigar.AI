@@ -19,10 +19,10 @@ export default function ProfileScreen() {
   };
 
   const languages = [
-    { code: 'hi', label: 'हिंदी', flag: '🇮🇳' },
+    { code: 'hi', label: 'हिंदी', flag: '' },
     { code: 'en', label: 'English', flag: '🇬🇧' },
-    { code: 'ta', label: 'தமிழ்', flag: '🇮🇳' },
-    { code: 'bn', label: 'বাংলা', flag: '🇮🇳' },
+    { code: 'ta', label: 'தமிழ்', flag: '' },
+    { code: 'bn', label: 'বাংলা', flag: '' },
   ];
 
   const menuItems = [

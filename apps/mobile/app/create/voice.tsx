@@ -122,7 +122,7 @@ export default function VoiceScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← {t('common.back')}</Text>
+          <Text style={styles.backButton}> {t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.stepIndicator}>2 / 5</Text>
       </View>
@@ -156,7 +156,7 @@ export default function VoiceScreen() {
 
         {state === 'recorded' && (
           <View style={styles.recordedInfo}>
-            <Text style={styles.recordedIcon}>✅</Text>
+            <Text style={styles.recordedIcon}></Text>
             <Text style={styles.recordedText}>
               {formatDuration(duration)} recorded
             </Text>
@@ -179,7 +179,7 @@ export default function VoiceScreen() {
                 onPress={startRecording}
                 activeOpacity={0.7}
               >
-                <Text style={styles.micIcon}>🎤</Text>
+                <Text style={styles.micIcon}></Text>
               </TouchableOpacity>
             </Animated.View>
             <Text style={styles.micHint}>{t('voice.holdToRecord')}</Text>
@@ -194,7 +194,7 @@ export default function VoiceScreen() {
                 onPress={stopRecording}
                 activeOpacity={0.7}
               >
-                <Text style={styles.micIcon}>⏹️</Text>
+                <Text style={styles.micIcon}>️</Text>
               </TouchableOpacity>
             </Animated.View>
             <Text style={styles.micHintRecording}>{t('voice.tapToStop')}</Text>
@@ -205,7 +205,7 @@ export default function VoiceScreen() {
           <View style={styles.actionButtons}>
             {/* Play button */}
             <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-              <Text style={styles.actionButtonIcon}>▶️</Text>
+              <Text style={styles.actionButtonIcon}>️</Text>
               <Text style={styles.actionButtonText}>{t('voice.playback')}</Text>
             </TouchableOpacity>
 
@@ -215,7 +215,7 @@ export default function VoiceScreen() {
               onPress={reRecord}
               activeOpacity={0.7}
             >
-              <Text style={styles.actionButtonIcon}>🔄</Text>
+              <Text style={styles.actionButtonIcon}></Text>
               <Text style={[styles.actionButtonText, styles.actionButtonTextOutline]}>
                 {t('voice.reRecord')}
               </Text>
@@ -233,7 +233,7 @@ export default function VoiceScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.nextButtonText}>{t('voice.useRecording')}</Text>
-            <Text style={styles.nextButtonArrow}>→</Text>
+            <Text style={styles.nextButtonArrow}></Text>
           </TouchableOpacity>
         </View>
       )}

@@ -32,9 +32,9 @@ export default function PricingScreen() {
       { title: 'फूल बूटी दुपट्टा', price: 1400, source: 'reference' },
     ],
     adjustments: [
-      { factor: 'GI Tag Premium', impact: '+15%', icon: '🏷️' },
-      { factor: 'Photo Quality', impact: '+5%', icon: '📸' },
-      { factor: 'Heritage Story', impact: '+3%', icon: '📜' },
+      { factor: 'GI Tag Premium', impact: '+15%', icon: '' },
+      { factor: 'Photo Quality', impact: '+5%', icon: '' },
+      { factor: 'Heritage Story', impact: '+3%', icon: '' },
     ],
     sampleSize: 47,
     confidence: 0.78,
@@ -50,7 +50,7 @@ export default function PricingScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← {t('common.back')}</Text>
+          <Text style={styles.backButton}> {t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.stepIndicator}>4 / 5</Text>
       </View>
@@ -91,7 +91,7 @@ export default function PricingScreen() {
           activeOpacity={0.7}
         >
           <View style={styles.whyHeader}>
-            <Text style={styles.whyTitle}>❓ {t('pricing.whyThisPrice')}</Text>
+            <Text style={styles.whyTitle}> {t('pricing.whyThisPrice')}</Text>
             <Text style={styles.whyToggle}>{showBreakdown ? '▲' : '▼'}</Text>
           </View>
 
@@ -99,7 +99,7 @@ export default function PricingScreen() {
             <View style={styles.breakdown}>
               {/* Cost Breakdown */}
               <View style={styles.breakdownSection}>
-                <Text style={styles.breakdownTitle}>📦 {t('pricing.yourCost')}</Text>
+                <Text style={styles.breakdownTitle}> {t('pricing.yourCost')}</Text>
                 <View style={styles.breakdownRow}>
                   <Text style={styles.breakdownLabel}>Raw Material</Text>
                   <Text style={styles.breakdownValue}>₹{pricing.costBreakdown.rawMaterial}</Text>
@@ -182,7 +182,7 @@ export default function PricingScreen() {
           activeOpacity={0.8}
         >
           <Text style={styles.nextButtonText}>{t('pricing.usePrice')}</Text>
-          <Text style={styles.nextButtonArrow}>→</Text>
+          <Text style={styles.nextButtonArrow}></Text>
         </TouchableOpacity>
       </View>
     </View>

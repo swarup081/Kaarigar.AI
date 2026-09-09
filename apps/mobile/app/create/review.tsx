@@ -46,7 +46,7 @@ export default function ReviewScreen() {
       <Text style={styles.fieldValue}>{value}</Text>
       {valueEn && <Text style={styles.fieldValueEn}>{valueEn}</Text>}
       <TouchableOpacity style={styles.editHint}>
-        <Text style={styles.editHintText}>✏️ {t('review.editField')}</Text>
+        <Text style={styles.editHintText}>️ {t('review.editField')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -54,7 +54,7 @@ export default function ReviewScreen() {
   if (isProcessing) {
     return (
       <View style={styles.processingContainer}>
-        <Text style={styles.processingIcon}>⚙️</Text>
+        <Text style={styles.processingIcon}>️</Text>
         <Text style={styles.processingText}>{t('review.processing')}</Text>
       </View>
     );
@@ -65,7 +65,7 @@ export default function ReviewScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← {t('common.back')}</Text>
+          <Text style={styles.backButton}> {t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.stepIndicator}>3 / 5</Text>
       </View>
@@ -73,14 +73,14 @@ export default function ReviewScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {/* AI Generated Badge */}
         <View style={styles.aiBadge}>
-          <Text style={styles.aiBadgeIcon}>✨</Text>
+          <Text style={styles.aiBadgeIcon}></Text>
           <Text style={styles.aiBadgeText}>{t('review.aiGenerated')}</Text>
         </View>
 
         {/* Photo Preview */}
         <View style={styles.photoContainer}>
           <View style={styles.photoPlaceholder}>
-            <Text style={styles.photoPlaceholderIcon}>📸</Text>
+            <Text style={styles.photoPlaceholderIcon}></Text>
             <Text style={styles.photoPlaceholderText}>Before / After</Text>
           </View>
         </View>
@@ -109,7 +109,7 @@ export default function ReviewScreen() {
           activeOpacity={0.8}
         >
           <Text style={styles.nextButtonText}>{t('review.looksGood')}</Text>
-          <Text style={styles.nextButtonArrow}>→</Text>
+          <Text style={styles.nextButtonArrow}></Text>
         </TouchableOpacity>
       </View>
     </View>

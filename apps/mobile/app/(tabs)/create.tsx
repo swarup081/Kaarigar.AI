@@ -11,8 +11,8 @@ import { useTranslation } from 'react-i18next';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 
 const STEPS = [
-  { icon: '📸', step: 1, key: 'create.step1', desc: 'Take 3 photos: front, back, detail' },
-  { icon: '🎤', step: 2, key: 'create.step2', desc: 'Describe your product in your language' },
+  { icon: '', step: 1, key: 'create.step1', desc: 'Take 3 photos: front, back, detail' },
+  { icon: '', step: 2, key: 'create.step2', desc: 'Describe your product in your language' },
   { icon: '📝', step: 3, key: 'create.step3', desc: 'AI creates your listing — you review' },
   { icon: '💰', step: 4, key: 'create.step4', desc: 'See fair price with full breakdown' },
   { icon: '🚀', step: 5, key: 'create.step5', desc: 'Publish to your chosen channels' },
@@ -55,7 +55,7 @@ export default function CreateScreen() {
 
       {/* Time estimate */}
       <View style={styles.timeCard}>
-        <Text style={styles.timeIcon}>⏱️</Text>
+        <Text style={styles.timeIcon}>️</Text>
         <View>
           <Text style={styles.timeText}>Takes about 3-5 minutes</Text>
           <Text style={styles.timeSubtext}>Works offline too!</Text>
@@ -68,7 +68,7 @@ export default function CreateScreen() {
         onPress={() => router.push('/create/camera')}
         activeOpacity={0.8}
       >
-        <Text style={styles.startButtonIcon}>📸</Text>
+        <Text style={styles.startButtonIcon}></Text>
         <Text style={styles.startButtonText}>{t('create.step1')}</Text>
       </TouchableOpacity>
     </ScrollView>

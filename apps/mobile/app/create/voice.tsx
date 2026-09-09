@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as FileSystem from 'expo-file-system';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, TouchTargets, Animation } from '@/constants/theme';
+import { Feather } from '@expo/vector-icons';
 
 // Safe import for native-only modules
 let Haptics: any = null;
@@ -87,7 +88,7 @@ export default function VoiceScreen() {
       stopPulse();
 
       // TODO: Replace with actual expo-audio stop + save
-      const mockUri = `${FileSystem.documentDirectory}recordings/voice_${Date.now()}.m4a`;
+      const mockUri = `${(FileSystem as any).documentDirectory}recordings/voice_${Date.now()}.m4a`;
       setRecordingUri(mockUri);
       setState('recorded');
 
@@ -121,8 +122,9 @@ export default function VoiceScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← {t('common.back')}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Feather name="arrow-left" size={20} color={Colors.primary} style={{ marginRight: 4 }} />
+          <Text style={styles.backButton}>{t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.stepIndicator}>2 / 5</Text>
       </View>
@@ -156,7 +158,7 @@ export default function VoiceScreen() {
 
         {state === 'recorded' && (
           <View style={styles.recordedInfo}>
-            <Text style={styles.recordedIcon}>✅</Text>
+            <Feather name="check-circle" size={24} color={Colors.secondary} style={{ marginBottom: 8 }} />
             <Text style={styles.recordedText}>
               {formatDuration(duration)} recorded
             </Text>
@@ -179,7 +181,7 @@ export default function VoiceScreen() {
                 onPress={startRecording}
                 activeOpacity={0.7}
               >
-                <Text style={styles.micIcon}>🎤</Text>
+                <Feather name="mic" size={48} color="#fff" />
               </TouchableOpacity>
             </Animated.View>
             <Text style={styles.micHint}>{t('voice.holdToRecord')}</Text>
@@ -194,7 +196,7 @@ export default function VoiceScreen() {
                 onPress={stopRecording}
                 activeOpacity={0.7}
               >
-                <Text style={styles.micIcon}>⏹️</Text>
+                <Feather name="square" size={48} color="#fff" />
               </TouchableOpacity>
             </Animated.View>
             <Text style={styles.micHintRecording}>{t('voice.tapToStop')}</Text>
@@ -205,7 +207,7 @@ export default function VoiceScreen() {
           <View style={styles.actionButtons}>
             {/* Play button */}
             <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-              <Text style={styles.actionButtonIcon}>▶️</Text>
+              <Feather name="play" size={20} color="#fff" style={{ marginRight: 8 }} />
               <Text style={styles.actionButtonText}>{t('voice.playback')}</Text>
             </TouchableOpacity>
 
@@ -215,7 +217,7 @@ export default function VoiceScreen() {
               onPress={reRecord}
               activeOpacity={0.7}
             >
-              <Text style={styles.actionButtonIcon}>🔄</Text>
+              <Feather name="rotate-ccw" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
               <Text style={[styles.actionButtonText, styles.actionButtonTextOutline]}>
                 {t('voice.reRecord')}
               </Text>
@@ -233,7 +235,7 @@ export default function VoiceScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.nextButtonText}>{t('voice.useRecording')}</Text>
-            <Text style={styles.nextButtonArrow}>→</Text>
+            <Feather name="arrow-right" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       )}

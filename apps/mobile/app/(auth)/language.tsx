@@ -1,22 +1,18 @@
-// ============================================
-// Kaarigar — Language Selection (First Screen)
-// Large buttons with native script labels
-// This is the FIRST thing the artisan sees
-// ============================================
-
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Colors, Typography, Spacing, BorderRadius, Shadows, TouchTargets } from '@/constants/theme';
+import { Feather } from '@expo/vector-icons';
 
 let Haptics: any = null;
 if (Platform.OS !== 'web') { try { Haptics = require('expo-haptics'); } catch (e) {} }
 
 const LANGUAGES = [
-  { code: 'hi', label: 'हिंदी', subLabel: 'Hindi', flag: '🇮🇳' },
-  { code: 'en', label: 'English', subLabel: 'English', flag: '🇬🇧' },
-  { code: 'ta', label: 'தமிழ்', subLabel: 'Tamil', flag: '🇮🇳' },
-  { code: 'bn', label: 'বাংলা', subLabel: 'Bengali', flag: '🇮🇳' },
+  { code: 'hi', label: 'हिंदी', subLabel: 'Hindi', icon: 'globe' },
+  { code: 'en', label: 'English', subLabel: 'English', icon: 'globe' },
+  { code: 'ta', label: 'தமிழ்', subLabel: 'Tamil', icon: 'globe' },
+  { code: 'bn', label: 'বাংলা', subLabel: 'Bengali', icon: 'globe' },
 ];
 
 export default function LanguageScreen() {
@@ -30,105 +26,143 @@ export default function LanguageScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* App branding */}
-      <View style={styles.brandContainer}>
-        <Text style={styles.logo}>🧶</Text>
-        <Text style={styles.appName}>Kaarigar</Text>
-        <Text style={styles.tagline}>कारीगर</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* App branding */}
+        <View style={styles.brandContainer}>
+          <View style={styles.logoWrapper}>
+            <Text style={styles.logoText}>B</Text>
+          </View>
+          <Text style={styles.appName}>Kaarigar</Text>
+          <Text style={styles.tagline}>Empowering Artisans</Text>
+        </View>
 
-      {/* Language prompt */}
-      <Text style={styles.prompt}>अपनी भाषा चुनें</Text>
-      <Text style={styles.promptEn}>Choose your language</Text>
+        {/* Language prompt */}
+        <View style={styles.promptContainer}>
+          <Text style={styles.prompt}>अपनी भाषा चुनें</Text>
+          <Text style={styles.promptEn}>Choose your language</Text>
+        </View>
 
-      {/* Language buttons — big, accessible */}
-      <View style={styles.languageGrid}>
-        {LANGUAGES.map((lang) => (
-          <TouchableOpacity
-            key={lang.code}
-            style={styles.languageButton}
-            onPress={() => selectLanguage(lang.code)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.languageFlag}>{lang.flag}</Text>
-            <Text style={styles.languageLabel}>{lang.label}</Text>
-            <Text style={styles.languageSubLabel}>{lang.subLabel}</Text>
-          </TouchableOpacity>
-        ))}
+        {/* Language buttons */}
+        <View style={styles.languageGrid}>
+          {LANGUAGES.map((lang) => (
+            <TouchableOpacity
+              key={lang.code}
+              style={styles.languageButton}
+              onPress={() => selectLanguage(lang.code)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.langIconWrapper}>
+                <Feather name={lang.icon as any} size={20} color="#7C3AED" />
+              </View>
+              <View style={styles.langTextContainer}>
+                <Text style={styles.languageLabel}>{lang.label}</Text>
+                <Text style={styles.languageSubLabel}>{lang.subLabel}</Text>
+              </View>
+              <Feather name="chevron-right" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
-    padding: Spacing.xl,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
     justifyContent: 'center',
   },
   brandContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.xxxl,
+    marginBottom: 48,
   },
-  logo: {
-    fontSize: 72,
-    marginBottom: Spacing.md,
+  logoWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F3E8FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E9D8FD',
+  },
+  logoText: {
+    fontFamily: 'serif',
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#7C3AED',
   },
   appName: {
-    fontSize: Typography.sizes.display,
-    fontWeight: Typography.weights.bold,
-    color: Colors.primary,
+    fontFamily: 'serif',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 4,
   },
   tagline: {
-    fontSize: Typography.sizes.xl,
-    color: Colors.textLight,
-    marginTop: Spacing.xs,
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+  promptContainer: {
+    marginBottom: 32,
   },
   prompt: {
-    fontSize: Typography.sizes.xxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Spacing.xs,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
   },
   promptEn: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.textLight,
-    textAlign: 'center',
-    marginBottom: Spacing.xxl,
+    fontSize: 14,
+    color: '#6B7280',
   },
   languageGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: Spacing.lg,
+    gap: 16,
   },
   languageButton: {
-    width: '44%',
-    minHeight: TouchTargets.minimum * 2,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Colors.border,
-    ...Shadows.card,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 1,
   },
-  languageFlag: {
-    fontSize: 28,
-    marginBottom: Spacing.sm,
+  langIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F9FAFB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  langTextContainer: {
+    flex: 1,
   },
   languageLabel: {
-    fontSize: Typography.sizes.xxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 2,
   },
   languageSubLabel: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textLight,
-    marginTop: Spacing.xs,
+    fontSize: 13,
+    color: '#6B7280',
   },
 });

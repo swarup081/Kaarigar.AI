@@ -1,138 +1,151 @@
-// ============================================
-// Kaarigar — Channels Tab
-// Manage platform listings (ONDC, WhatsApp)
-// ============================================
-
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Colors, Typography, Spacing, BorderRadius, TouchTargets } from '@/constants/theme';
+import { Feather, FontAwesome } from '@expo/vector-icons';
 
 export default function ChannelsScreen() {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Channels</Text>
-      <Text style={styles.subtext}>Manage where your products are listed</Text>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Channels</Text>
+        <Text style={styles.subtitle}>Manage where your products are listed</Text>
+      </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
         {/* WhatsApp Channel */}
-        <TouchableOpacity style={styles.card} activeOpacity={0.8}>
-          <Text style={styles.cardIcon}>💬</Text>
+        <TouchableOpacity style={styles.channelCard} activeOpacity={0.7}>
+          <View style={[styles.iconWrapper, { backgroundColor: '#ECFDF5' }]}>
+            <FontAwesome name="whatsapp" size={28} color="#10B981" />
+          </View>
           <View style={styles.cardInfo}>
             <Text style={styles.cardTitle}>WhatsApp Catalog</Text>
-            <Text style={styles.cardDesc}>Share products directly via WhatsApp</Text>
+            <Text style={styles.cardDesc}>Share your products directly with customers via WhatsApp.</Text>
           </View>
-          <View style={[styles.badge, { backgroundColor: Colors.secondary }]}>
-            <Text style={styles.badgeText}>Share</Text>
+          <View style={styles.actionPill}>
+            <Text style={styles.actionPillText}>Share</Text>
           </View>
         </TouchableOpacity>
 
         {/* ONDC Channel */}
-        <View style={[styles.card, styles.cardDisabled]}>
-          <Text style={styles.cardIcon}>🛒</Text>
+        <View style={[styles.channelCard, styles.channelCardDisabled]}>
+          <View style={[styles.iconWrapper, { backgroundColor: '#EFF6FF' }]}>
+            <Feather name="shopping-cart" size={24} color="#3B82F6" />
+          </View>
           <View style={styles.cardInfo}>
             <Text style={styles.cardTitle}>ONDC Network</Text>
-            <Text style={styles.cardDesc}>Sell to buyers across India</Text>
+            <Text style={styles.cardDesc}>Sell to millions of buyers across India on the open network.</Text>
           </View>
-          <View style={styles.badgeDisabled}>
-            <Text style={styles.badgeTextDisabled}>Coming Soon</Text>
+          <View style={[styles.actionPill, styles.actionPillDisabled]}>
+            <Text style={styles.actionPillTextDisabled}>Coming Soon</Text>
           </View>
         </View>
 
-        {/* Global Export Channel */}
-        <View style={[styles.card, styles.cardDisabled]}>
-          <Text style={styles.cardIcon}>🌍</Text>
+        {/* Export Channel */}
+        <View style={[styles.channelCard, styles.channelCardDisabled]}>
+          <View style={[styles.iconWrapper, { backgroundColor: '#FFF7ED' }]}>
+            <Feather name="globe" size={24} color="#F97316" />
+          </View>
           <View style={styles.cardInfo}>
             <Text style={styles.cardTitle}>Global Export</Text>
-            <Text style={styles.cardDesc}>Connect with international buyers</Text>
+            <Text style={styles.cardDesc}>Connect with international buyers and manage bulk orders.</Text>
           </View>
-          <View style={styles.badgeDisabled}>
-            <Text style={styles.badgeTextDisabled}>Coming Soon</Text>
+          <View style={[styles.actionPill, styles.actionPillDisabled]}>
+            <Text style={styles.actionPillTextDisabled}>Coming Soon</Text>
           </View>
         </View>
-
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
-    paddingTop: Spacing.xxl,
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    fontSize: Typography.sizes.xxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
-    marginBottom: Spacing.xs,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  subtext: {
-    fontSize: Typography.sizes.md,
-    color: Colors.textLight,
-    paddingHorizontal: Spacing.xl,
-    marginBottom: Spacing.xl,
+  title: {
+    fontFamily: 'serif',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#6B7280',
   },
   scrollContent: {
-    padding: Spacing.xl,
-    gap: Spacing.md,
+    padding: 24,
+    gap: 16,
   },
-  card: {
-    backgroundColor: Colors.surface,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
+  channelCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  cardDisabled: {
-    opacity: 0.6,
-    backgroundColor: Colors.surfaceElevated,
+  channelCardDisabled: {
+    opacity: 0.7,
+    backgroundColor: '#F9FAFB',
   },
-  cardIcon: {
-    fontSize: 32,
-    marginRight: Spacing.md,
+  iconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
   cardInfo: {
     flex: 1,
+    marginRight: 12,
   },
   cardTitle: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    marginBottom: Spacing.xs,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
   },
   cardDesc: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textLight,
+    fontSize: 13,
+    color: '#6B7280',
+    lineHeight: 18,
   },
-  badge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.pill,
+  actionPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#10B981',
+    borderRadius: 20,
   },
-  badgeDisabled: {
-    backgroundColor: Colors.border,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.pill,
+  actionPillDisabled: {
+    backgroundColor: '#E5E7EB',
   },
-  badgeText: {
-    color: Colors.surface,
-    fontWeight: Typography.weights.bold,
-    fontSize: Typography.sizes.sm,
+  actionPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
-  badgeTextDisabled: {
-    color: Colors.textLight,
-    fontWeight: Typography.weights.bold,
-    fontSize: Typography.sizes.sm,
+  actionPillTextDisabled: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
   },
 });

@@ -1,19 +1,16 @@
-// ============================================
-// Kaarigar — Tab Bar Layout
-// Icon-heavy, minimal text, 4 tabs
-// Designed for low-literacy users
-// ============================================
-
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Colors, Typography, Spacing, TouchTargets } from '@/constants/theme';
+import { Feather } from '@expo/vector-icons';
 
-function TabBarIcon({ icon, focused }: { icon: string; focused: boolean }) {
+function TabBarIcon({ icon, focused }: { icon: any; focused: boolean }) {
   return (
     <View style={styles.iconContainer}>
-      <Text style={[styles.icon, focused && styles.iconFocused]}>{icon}</Text>
-      {focused && <View style={styles.activeIndicator} />}
+      <Feather 
+        name={icon} 
+        size={24} 
+        color={focused ? '#7C3AED' : '#9CA3AF'}
+      />
     </View>
   );
 }
@@ -26,62 +23,60 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textLight,
+        tabBarActiveTintColor: '#7C3AED',
+        tabBarInactiveTintColor: '#9CA3AF',
         tabBarLabelStyle: styles.tabLabel,
-        tabBarIconStyle: styles.tabIcon,
+        tabBarShowLabel: true,
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{
-          href: null, // Hidden from tab bar
-        }}
+        options={{ href: null }}
       />
+      
       <Tabs.Screen
         name="home"
         options={{
-          title: t('tabs.home'),
-          headerTitle: 'Kaarigar',
-          tabBarIcon: ({ focused }) => <TabBarIcon icon="🏠" focused={focused} />,
+          title: 'Home',
+          tabBarIcon: ({ focused }) => <TabBarIcon icon="home" focused={focused} />,
         }}
       />
+      
+      <Tabs.Screen
+        name="catalog"
+        options={{
+          title: 'Products',
+          tabBarIcon: ({ focused }) => <TabBarIcon icon="grid" focused={focused} />,
+        }}
+      />
+      
       <Tabs.Screen
         name="create"
         options={{
-          title: t('tabs.create'),
-          headerTitle: t('create.newListing'),
+          title: 'Add',
           tabBarIcon: ({ focused }) => (
             <View style={styles.createButtonContainer}>
               <View style={styles.createButton}>
-                <Text style={styles.createButtonIcon}>➕</Text>
+                <Feather name="camera" size={36} color="#FFFFFF" />
               </View>
             </View>
           ),
         }}
       />
+      
       <Tabs.Screen
         name="history"
         options={{
           title: 'Channels',
-          headerTitle: 'Channels',
-          tabBarIcon: ({ focused }) => <TabBarIcon icon="📢" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabBarIcon icon="share-2" focused={focused} />,
         }}
       />
-      <Tabs.Screen
-        name="catalog"
-        options={{
-          title: t('tabs.catalog'),
-          headerTitle: t('catalog.title'),
-          tabBarIcon: ({ focused }) => <TabBarIcon icon="📦" focused={focused} />,
-        }}
-      />
+      
       <Tabs.Screen
         name="profile"
         options={{
-          title: t('tabs.profile'),
-          headerTitle: t('profile.title'),
-          tabBarIcon: ({ focused }) => <TabBarIcon icon="👤" focused={focused} />,
+          title: 'Profile',
+          tabBarIcon: ({ focused }) => <TabBarIcon icon="user" focused={focused} />,
         }}
       />
     </Tabs>
@@ -90,66 +85,40 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 72,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.sm,
-    backgroundColor: Colors.surface,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    borderTopColor: '#F3F4F6',
+    height: Platform.OS === 'ios' ? 88 : 64,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+    paddingTop: 8,
   },
   tabLabel: {
-    fontSize: Typography.sizes.xs,
-    fontWeight: Typography.weights.medium,
-    marginTop: 2,
-  },
-  tabIcon: {
-    marginBottom: 0,
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 4,
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: TouchTargets.tabBarIcon,
-    height: TouchTargets.tabBarIcon,
-  },
-  icon: {
-    fontSize: 24,
-    opacity: 0.6,
-  },
-  iconFocused: {
-    opacity: 1,
-    fontSize: 28,
-  },
-  activeIndicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.primary,
-    marginTop: 2,
   },
   createButtonContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -20,
+    marginTop: -32,
   },
   createButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.primary,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#7C3AED',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 6,
-    shadowColor: Colors.primary,
+    elevation: 4,
+    shadowColor: '#7C3AED',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  createButtonIcon: {
-    fontSize: 28,
+    shadowRadius: 4,
+    borderWidth: 4,
+    borderColor: '#FAFAFA',
   },
 });

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Feather } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 
 export default function PricingScreen() {
@@ -32,9 +33,9 @@ export default function PricingScreen() {
       { title: 'फूल बूटी दुपट्टा', price: 1400, source: 'reference' },
     ],
     adjustments: [
-      { factor: 'GI Tag Premium', impact: '+15%', icon: '🏷️' },
-      { factor: 'Photo Quality', impact: '+5%', icon: '📸' },
-      { factor: 'Heritage Story', impact: '+3%', icon: '📜' },
+      { factor: 'GI Tag Premium', impact: '+15%', icon: '' },
+      { factor: 'Photo Quality', impact: '+5%', icon: '' },
+      { factor: 'Heritage Story', impact: '+3%', icon: '' },
     ],
     sampleSize: 47,
     confidence: 0.78,
@@ -50,7 +51,7 @@ export default function PricingScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← {t('common.back')}</Text>
+          <Text style={styles.backButton}> {t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.stepIndicator}>4 / 5</Text>
       </View>
@@ -91,7 +92,7 @@ export default function PricingScreen() {
           activeOpacity={0.7}
         >
           <View style={styles.whyHeader}>
-            <Text style={styles.whyTitle}>❓ {t('pricing.whyThisPrice')}</Text>
+            <Text style={styles.whyTitle}> {t('pricing.whyThisPrice')}</Text>
             <Text style={styles.whyToggle}>{showBreakdown ? '▲' : '▼'}</Text>
           </View>
 
@@ -99,7 +100,7 @@ export default function PricingScreen() {
             <View style={styles.breakdown}>
               {/* Cost Breakdown */}
               <View style={styles.breakdownSection}>
-                <Text style={styles.breakdownTitle}>📦 {t('pricing.yourCost')}</Text>
+                <Text style={styles.breakdownTitle}> {t('pricing.yourCost')}</Text>
                 <View style={styles.breakdownRow}>
                   <Text style={styles.breakdownLabel}>Raw Material</Text>
                   <Text style={styles.breakdownValue}>₹{pricing.costBreakdown.rawMaterial}</Text>
@@ -124,7 +125,7 @@ export default function PricingScreen() {
 
               {/* Market Comparables */}
               <View style={styles.breakdownSection}>
-                <Text style={styles.breakdownTitle}>🏪 {t('pricing.similarItems')}</Text>
+                <Text style={styles.breakdownTitle}><Feather name="shopping-bag" size={16} /> {t('pricing.similarItems')}</Text>
                 {pricing.comparables.map((item, i) => (
                   <View key={i} style={styles.breakdownRow}>
                     <Text style={styles.breakdownLabel}>{item.title}</Text>
@@ -138,7 +139,7 @@ export default function PricingScreen() {
 
               {/* AI Adjustments */}
               <View style={styles.breakdownSection}>
-                <Text style={styles.breakdownTitle}>🤖 AI Adjustments</Text>
+                <Text style={styles.breakdownTitle}><Feather name="cpu" size={16} /> AI Adjustments</Text>
                 {pricing.adjustments.map((adj, i) => (
                   <View key={i} style={styles.adjustmentRow}>
                     <Text style={styles.adjustmentIcon}>{adj.icon}</Text>
@@ -163,7 +164,7 @@ export default function PricingScreen() {
 
         {/* TTS Button */}
         <TouchableOpacity style={styles.listenButton}>
-          <Text style={styles.listenButtonIcon}>🔊</Text>
+          <Feather name="volume-2" size={24} color={Colors.primary} style={{ marginRight: 8 }} />
           <Text style={styles.listenButtonText}>{t('review.listen')}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -182,7 +183,7 @@ export default function PricingScreen() {
           activeOpacity={0.8}
         >
           <Text style={styles.nextButtonText}>{t('pricing.usePrice')}</Text>
-          <Text style={styles.nextButtonArrow}>→</Text>
+          <Feather name="arrow-right" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
     </View>

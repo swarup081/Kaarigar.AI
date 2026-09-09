@@ -1,6 +1,6 @@
 // ============================================
 // Kaarigar — Auth Layout
-// Language selection → Phone OTP → Profile setup
+// Language selection  Phone OTP  Profile setup
 // ============================================
 
 import { Stack } from 'expo-router';

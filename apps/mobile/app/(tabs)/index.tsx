@@ -1,0 +1,6 @@
+// Redirect to home tab
+import { Redirect } from 'expo-router';
+
+export default function TabIndex() {
+  return <Redirect href="/(tabs)/home" />;
+}

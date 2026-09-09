@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  image-enhancer:
+    build: ./image-enhancer
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./image-enhancer/.env
+    volumes:
+      - ./image-enhancer:/app
+    restart: unless-stopped
+
+  voice-cataloger:
+    build: ./voice-cataloger
+    ports:
+      - "8002:8002"
+    env_file:
+      - ./voice-cataloger/.env
+    volumes:
+      - ./voice-cataloger:/app
+    restart: unless-stopped
+
+  pricing-engine:
+    build: ./pricing-engine
+    ports:
+      - "8003:8003"
+    env_file:
+      - ./pricing-engine/.env
+    volumes:
+      - ./pricing-engine:/app
+    restart: unless-stopped
+
+  tts-service:
+    build: ./tts-service
+    ports:
+      - "8004:8004"
+    env_file:
+      - ./tts-service/.env
+    volumes:
+      - ./tts-service:/app
+    restart: unless-stopped

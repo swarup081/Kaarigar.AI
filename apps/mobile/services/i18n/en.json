@@ -1,0 +1,147 @@
+{
+  "app": {
+    "name": "Kaarigar"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "done": "Done",
+    "next": "Next",
+    "back": "Back",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "share": "Share",
+    "offline": "You are offline",
+    "offlineNote": "Your work is saved. It will sync when you're online.",
+    "syncing": "Syncing...",
+    "synced": "All saved"
+  },
+  "auth": {
+    "selectLanguage": "Choose your language",
+    "enterPhone": "Enter your phone number",
+    "enterOtp": "Enter the OTP sent to your phone",
+    "sendOtp": "Send OTP",
+    "verifyOtp": "Verify",
+    "welcome": "Welcome to Kaarigar!",
+    "setupProfile": "Let's set up your shop"
+  },
+  "onboarding": {
+    "slide1Title": "Take a photo",
+    "slide1Desc": "We'll make it look professional",
+    "slide2Title": "Describe in your voice",
+    "slide2Desc": "Speak in your language — we'll write the listing",
+    "slide3Title": "Get the right price",
+    "slide3Desc": "We'll suggest a fair price with reasons",
+    "getStarted": "Get Started"
+  },
+  "tabs": {
+    "home": "Home",
+    "create": "Add",
+    "catalog": "Products",
+    "profile": "Profile"
+  },
+  "home": {
+    "greeting": "Hello, {{name}}!",
+    "shopProgress": "Your shop is {{percent}}% ready",
+    "addProduct": "Add New Product",
+    "recentProducts": "Your Recent Products",
+    "noProducts": "You haven't added any products yet",
+    "startAdding": "Tap + to add your first product"
+  },
+  "create": {
+    "newListing": "New Product",
+    "step1": "Take Photo",
+    "step2": "Describe",
+    "step3": "Review",
+    "step4": "Set Price",
+    "step5": "Publish"
+  },
+  "camera": {
+    "title": "Photograph your product",
+    "lightGood": "Good lighting",
+    "lightLow": "Move to better light",
+    "lightBright": "Too bright",
+    "levelOk": "Phone is level",
+    "levelTilt": "Hold phone level",
+    "steady": "Steady",
+    "shaking": "Hold steady",
+    "capture": "Take Photo",
+    "retake": "Retake",
+    "usePhoto": "Use this photo",
+    "nextAngle": "Now show the {{angle}}",
+    "angleBack": "back",
+    "angleDetail": "close-up detail",
+    "angleSide": "side",
+    "photosCount": "{{current}} of {{total}} photos"
+  },
+  "voice": {
+    "title": "Describe your product",
+    "instruction": "Tell us about this product in your language",
+    "holdToRecord": "Press and hold to record",
+    "recording": "Recording...",
+    "tapToStop": "Tap to stop",
+    "playback": "Listen",
+    "reRecord": "Record again",
+    "useRecording": "Use this recording"
+  },
+  "review": {
+    "title": "Your listing",
+    "aiGenerated": "Created from your description",
+    "listen": "Listen",
+    "editField": "Tap to edit",
+    "productTitle": "Product name",
+    "description": "Description",
+    "material": "Material",
+    "technique": "Making technique",
+    "heritage": "Heritage story",
+    "looksGood": "Looks good!",
+    "processing": "Creating your listing..."
+  },
+  "pricing": {
+    "title": "Suggested price",
+    "whyThisPrice": "Why this price?",
+    "yourCost": "Your cost",
+    "similarItems": "Similar items sell for",
+    "recommended": "Recommended",
+    "setMyOwn": "Set my own price",
+    "usePrice": "Use this price",
+    "floorWarning": "This is below your cost price"
+  },
+  "publish": {
+    "title": "Where to sell?",
+    "selectChannels": "Choose where to publish",
+    "publish": "Publish",
+    "publishing": "Publishing...",
+    "published": "Published!",
+    "connected": "Connected",
+    "setupRequired": "Setup needed",
+    "comingSoon": "Coming soon",
+    "viewStorefront": "View your storefront"
+  },
+  "catalog": {
+    "title": "Your Products",
+    "draft": "Draft",
+    "published": "Published",
+    "processing": "Processing",
+    "all": "All",
+    "shareAsLink": "Share storefront link",
+    "shareAsPdf": "Share as PDF catalog",
+    "shareAsImage": "Share as image",
+    "emptyState": "No products yet"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit profile",
+    "name": "Name",
+    "craft": "Your craft",
+    "region": "Your village/city",
+    "language": "Language",
+    "syncStatus": "Sync status",
+    "help": "Help",
+    "about": "About Kaarigar"
+  }
+}

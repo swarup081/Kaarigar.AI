@@ -1,0 +1,147 @@
+{
+  "app": {
+    "name": "कारीगर"
+  },
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "कुछ गड़बड़ हो गई",
+    "retry": "फिर से कोशिश करें",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "done": "हो गया",
+    "next": "आगे",
+    "back": "पीछे",
+    "confirm": "पक्का करें",
+    "delete": "हटाएँ",
+    "edit": "बदलें",
+    "share": "शेयर करें",
+    "offline": "इंटरनेट नहीं है",
+    "offlineNote": "आपका काम सेव है। इंटरनेट आने पर अपलोड होगा।",
+    "syncing": "अपलोड हो रहा है...",
+    "synced": "सब सेव हो गया"
+  },
+  "auth": {
+    "selectLanguage": "अपनी भाषा चुनें",
+    "enterPhone": "अपना फ़ोन नंबर डालें",
+    "enterOtp": "फ़ोन पर आया OTP डालें",
+    "sendOtp": "OTP भेजें",
+    "verifyOtp": "जाँचें",
+    "welcome": "कारीगर में आपका स्वागत है!",
+    "setupProfile": "अपनी दुकान बनाएँ"
+  },
+  "onboarding": {
+    "slide1Title": "फोटो खींचें",
+    "slide1Desc": "हम इसे प्रोफेशनल बना देंगे",
+    "slide2Title": "अपनी आवाज़ में बताएँ",
+    "slide2Desc": "अपनी भाषा में बोलें — हम लिस्टिंग लिख देंगे",
+    "slide3Title": "सही कीमत पाएँ",
+    "slide3Desc": "हम वजह के साथ सही कीमत बताएँगे",
+    "getStarted": "शुरू करें"
+  },
+  "tabs": {
+    "home": "होम",
+    "create": "नया",
+    "catalog": "प्रोडक्ट",
+    "profile": "प्रोफ़ाइल"
+  },
+  "home": {
+    "greeting": "नमस्ते, {{name}}!",
+    "shopProgress": "आपकी दुकान {{percent}}% तैयार है",
+    "addProduct": "नया प्रोडक्ट जोड़ें",
+    "recentProducts": "हाल के प्रोडक्ट",
+    "noProducts": "अभी कोई प्रोडक्ट नहीं है",
+    "startAdding": "+ दबाकर पहला प्रोडक्ट जोड़ें"
+  },
+  "create": {
+    "newListing": "नया प्रोडक्ट",
+    "step1": "फोटो लें",
+    "step2": "बताएँ",
+    "step3": "जाँचें",
+    "step4": "कीमत",
+    "step5": "पब्लिश"
+  },
+  "camera": {
+    "title": "अपने प्रोडक्ट की फोटो लें",
+    "lightGood": "अच्छी रोशनी",
+    "lightLow": "ज़्यादा रोशनी में जाएँ",
+    "lightBright": "बहुत तेज़ रोशनी",
+    "levelOk": "फ़ोन सीधा है",
+    "levelTilt": "फ़ोन सीधा रखें",
+    "steady": "स्थिर",
+    "shaking": "फ़ोन हिल रहा है",
+    "capture": "फोटो लें",
+    "retake": "दोबारा लें",
+    "usePhoto": "यह फोटो चुनें",
+    "nextAngle": "अब {{angle}} दिखाएँ",
+    "angleBack": "पीछे का हिस्सा",
+    "angleDetail": "करीब से",
+    "angleSide": "साइड",
+    "photosCount": "{{current}} / {{total}} फोटो"
+  },
+  "voice": {
+    "title": "अपना प्रोडक्ट बताएँ",
+    "instruction": "इस प्रोडक्ट के बारे में अपनी भाषा में बताएँ",
+    "holdToRecord": "रिकॉर्ड करने के लिए दबाकर रखें",
+    "recording": "रिकॉर्ड हो रहा है...",
+    "tapToStop": "रोकने के लिए दबाएँ",
+    "playback": "सुनें",
+    "reRecord": "फिर से रिकॉर्ड करें",
+    "useRecording": "यह रिकॉर्डिंग चुनें"
+  },
+  "review": {
+    "title": "आपकी लिस्टिंग",
+    "aiGenerated": "आपके विवरण से बनाई गई",
+    "listen": "सुनें",
+    "editField": "बदलने के लिए दबाएँ",
+    "productTitle": "प्रोडक्ट का नाम",
+    "description": "विवरण",
+    "material": "सामग्री",
+    "technique": "बनाने की तकनीक",
+    "heritage": "विरासत की कहानी",
+    "looksGood": "सही है!",
+    "processing": "आपकी लिस्टिंग बन रही है..."
+  },
+  "pricing": {
+    "title": "सुझाई गई कीमत",
+    "whyThisPrice": "यह कीमत क्यों?",
+    "yourCost": "आपकी लागत",
+    "similarItems": "ऐसे ही प्रोडक्ट बिकते हैं",
+    "recommended": "सुझाव",
+    "setMyOwn": "अपनी कीमत लगाएँ",
+    "usePrice": "यह कीमत लगाएँ",
+    "floorWarning": "यह आपकी लागत से कम है"
+  },
+  "publish": {
+    "title": "कहाँ बेचना है?",
+    "selectChannels": "पब्लिश करने की जगह चुनें",
+    "publish": "पब्लिश करें",
+    "publishing": "पब्लिश हो रहा है...",
+    "published": "पब्लिश हो गया!",
+    "connected": "जुड़ा हुआ",
+    "setupRequired": "सेटअप ज़रूरी",
+    "comingSoon": "जल्द आ रहा है",
+    "viewStorefront": "अपनी दुकान देखें"
+  },
+  "catalog": {
+    "title": "आपके प्रोडक्ट",
+    "draft": "ड्राफ़्ट",
+    "published": "पब्लिश",
+    "processing": "बन रहा है",
+    "all": "सभी",
+    "shareAsLink": "दुकान का लिंक शेयर करें",
+    "shareAsPdf": "PDF कैटलॉग शेयर करें",
+    "shareAsImage": "फोटो शेयर करें",
+    "emptyState": "अभी कोई प्रोडक्ट नहीं"
+  },
+  "profile": {
+    "title": "प्रोफ़ाइल",
+    "editProfile": "प्रोफ़ाइल बदलें",
+    "name": "नाम",
+    "craft": "आपका शिल्प",
+    "region": "आपका गाँव/शहर",
+    "language": "भाषा",
+    "syncStatus": "सिंक स्थिति",
+    "help": "मदद",
+    "about": "कारीगर के बारे में"
+  }
+}

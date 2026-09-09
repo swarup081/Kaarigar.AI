@@ -1,0 +1,100 @@
+{
+  "app": { "name": "কারিগর" },
+  "common": {
+    "loading": "লোড হচ্ছে...",
+    "error": "কিছু ভুল হয়েছে",
+    "retry": "আবার চেষ্টা করুন",
+    "cancel": "বাতিল",
+    "save": "সংরক্ষণ",
+    "done": "হয়ে গেছে",
+    "next": "পরবর্তী",
+    "back": "পিছনে",
+    "confirm": "নিশ্চিত",
+    "delete": "মুছুন",
+    "edit": "সম্পাদনা",
+    "share": "শেয়ার",
+    "offline": "ইন্টারনেট নেই",
+    "offlineNote": "আপনার কাজ সংরক্ষিত। ইন্টারনেট এলে আপলোড হবে।",
+    "syncing": "সিঙ্ক হচ্ছে...",
+    "synced": "সব সংরক্ষিত হয়েছে"
+  },
+  "auth": {
+    "selectLanguage": "আপনার ভাষা নির্বাচন করুন",
+    "enterPhone": "আপনার ফোন নম্বর দিন",
+    "enterOtp": "ফোনে পাঠানো OTP দিন",
+    "sendOtp": "OTP পাঠান",
+    "verifyOtp": "যাচাই করুন",
+    "welcome": "কারিগর-এ স্বাগতম!",
+    "setupProfile": "আপনার দোকান সেট আপ করুন"
+  },
+  "tabs": {
+    "home": "হোম",
+    "create": "নতুন",
+    "catalog": "পণ্য",
+    "profile": "প্রোফাইল"
+  },
+  "home": {
+    "greeting": "নমস্কার, {{name}}!",
+    "shopProgress": "আপনার দোকান {{percent}}% তৈরি",
+    "addProduct": "নতুন পণ্য যোগ করুন",
+    "recentProducts": "সাম্প্রতিক পণ্য",
+    "noProducts": "এখনো কোনো পণ্য নেই",
+    "startAdding": "প্রথম পণ্য যোগ করতে + চাপুন"
+  },
+  "create": {
+    "newListing": "নতুন পণ্য",
+    "step1": "ছবি তুলুন",
+    "step2": "বর্ণনা করুন",
+    "step3": "পরীক্ষা করুন",
+    "step4": "দাম",
+    "step5": "প্রকাশ করুন"
+  },
+  "camera": {
+    "title": "আপনার পণ্যের ছবি তুলুন",
+    "lightGood": "ভালো আলো",
+    "lightLow": "আরো আলোতে যান",
+    "levelOk": "ফোন সোজা আছে",
+    "levelTilt": "ফোন সোজা রাখুন",
+    "steady": "স্থির",
+    "shaking": "ফোন নড়ছে",
+    "capture": "ছবি তুলুন",
+    "retake": "আবার তুলুন",
+    "usePhoto": "এই ছবি ব্যবহার করুন"
+  },
+  "voice": {
+    "title": "আপনার পণ্য বর্ণনা করুন",
+    "instruction": "এই পণ্য সম্পর্কে আপনার ভাষায় বলুন",
+    "holdToRecord": "রেকর্ড করতে চেপে ধরুন",
+    "recording": "রেকর্ড হচ্ছে...",
+    "tapToStop": "থামাতে চাপুন",
+    "playback": "শুনুন",
+    "reRecord": "আবার রেকর্ড করুন",
+    "useRecording": "এই রেকর্ডিং ব্যবহার করুন"
+  },
+  "pricing": {
+    "title": "প্রস্তাবিত দাম",
+    "whyThisPrice": "এই দাম কেন?",
+    "yourCost": "আপনার খরচ",
+    "similarItems": "একই রকম পণ্য বিক্রি হয়",
+    "recommended": "সুপারিশ",
+    "setMyOwn": "নিজের দাম দিন",
+    "usePrice": "এই দাম ব্যবহার করুন"
+  },
+  "publish": {
+    "title": "কোথায় বিক্রি করবেন?",
+    "publish": "প্রকাশ করুন",
+    "published": "প্রকাশিত হয়েছে!"
+  },
+  "catalog": {
+    "title": "আপনার পণ্য",
+    "draft": "খসড়া",
+    "published": "প্রকাশিত",
+    "emptyState": "এখনো কোনো পণ্য নেই"
+  },
+  "profile": {
+    "title": "প্রোফাইল",
+    "name": "নাম",
+    "craft": "আপনার শিল্প",
+    "language": "ভাষা"
+  }
+}

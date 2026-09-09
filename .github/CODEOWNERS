@@ -1,0 +1,9 @@
+# Ownership boundaries — prevents merge conflicts
+# Swarup owns the mobile app, backend gateway, shared packages, and docs
+/apps/mobile/          @swarup081
+/apps/backend/         @swarup081
+/packages/             @swarup081
+/docs/                 @swarup081
+
+# Friend owns AI services
+/apps/ai-services/     @ai-teammate

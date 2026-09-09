@@ -1,0 +1,13 @@
+{
+  "name": "@kaarigar/backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:push": "supabase db push",
+    "functions:serve": "supabase functions serve",
+    "functions:deploy": "supabase functions deploy",
+    "typecheck": "echo 'Backend typecheck not applicable'"
+  }
+}

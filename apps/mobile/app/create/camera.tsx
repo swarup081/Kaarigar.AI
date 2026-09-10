@@ -11,9 +11,11 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import * as FileSystem from 'expo-file-system';
+import { Directory, File, Paths } from 'expo-file-system';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, TouchTargets } from '@/constants/theme';
 import { Feather } from '@expo/vector-icons';
+import { enhanceProductPhoto } from '@/services/image';
+import { usePhotoStore } from '@/stores/imageStore';
 
 // Conditional imports for native-only modules
 let CameraView: any = null;
@@ -56,6 +58,16 @@ export default function CameraScreen() {
   });
   const [isCapturing, setIsCapturing] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+
+  const addPhoto = usePhotoStore((s) => s.addPhoto);
+  const markEnhancing = usePhotoStore((s) => s.markEnhancing);
+  const setResult = usePhotoStore((s) => s.setResult);
+  const resetPhotos = usePhotoStore((s) => s.reset);
+
+  // A fresh visit to the camera starts a fresh listing.
+  useEffect(() => {
+    resetPhotos();
+  }, [resetPhotos]);
 
   // ─── Request camera permission ─────────────
 
@@ -131,20 +143,30 @@ export default function CameraScreen() {
       });
 
       if (photo?.uri) {
-        const filename = `product_${Date.now()}_${PHOTO_ANGLES[currentAngle]}.jpg`;
-        const baseDir = (FileSystem as any).documentDirectory || '';
-        const localPath = `${baseDir}photos/${filename}`;
+        const angle = PHOTO_ANGLES[currentAngle];
+        const stamp = Date.now();
+        const filename = `product_${stamp}_${angle}.jpg`;
 
-        await FileSystem.makeDirectoryAsync(
-          `${baseDir}photos/`,
-          { intermediates: true }
-        ).catch(() => {});
+        const photosDir = new Directory(Paths.document, 'photos');
+        if (!photosDir.exists) photosDir.create({ intermediates: true });
 
-        await FileSystem.moveAsync({ from: photo.uri, to: localPath });
+        const destination = new File(photosDir, filename);
+        if (destination.exists) destination.delete();
+        await new File(photo.uri).move(destination);
+        const localPath = destination.uri;
 
         if (Haptics) {
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
+
+        // Enhance in the background. The artisan should be free to reposition
+        // for the next angle while the cut-out runs, not watch a spinner.
+        const photoId = `${stamp}_${angle}`;
+        addPhoto({ id: photoId, sourceUri: localPath, angle });
+        markEnhancing(photoId);
+        void enhanceProductPhoto(localPath, 'enhanced').then((result) =>
+          setResult(photoId, result)
+        );
 
         const newPhotos = [...photos, localPath];
         setPhotos(newPhotos);
@@ -163,7 +185,7 @@ export default function CameraScreen() {
     } finally {
       setIsCapturing(false);
     }
-  }, [cameraRef, isCapturing, photos, currentAngle, router]);
+  }, [cameraRef, isCapturing, photos, currentAngle, router, addPhoto, markEnhancing, setResult]);
 
   const allClear = readiness.light === 'good' && readiness.level && readiness.steady;
 

@@ -76,7 +76,30 @@
     "angleBack": "पीछे का हिस्सा",
     "angleDetail": "करीब से",
     "angleSide": "साइड",
-    "photosCount": "{{current}} / {{total}} फोटो"
+    "photosCount": "{{current}} / {{total}} फोटो",
+    "errors": {
+      "IMAGE_TOO_DARK": "यह फोटो बहुत अंधेरी है",
+      "IMAGE_TOO_BRIGHT": "यह फोटो बहुत चमकीली है",
+      "IMAGE_BLURRY": "यह फोटो धुंधली है",
+      "NO_PRODUCT_DETECTED": "इस फोटो में प्रोडक्ट नहीं मिला",
+      "FILE_TOO_LARGE": "यह फोटो बहुत बड़ी है",
+      "INVALID_FORMAT": "यह फाइल फोटो नहीं है",
+      "PROCESSING_ERROR": "इस फोटो में कुछ गड़बड़ हुई"
+    },
+    "tips": {
+      "moveToLight": "खिड़की के पास जाएं",
+      "turnOnLamp": "लैंप जलाएं",
+      "useDaylight": "दिन के उजाले में दोबारा कोशिश करें",
+      "avoidDirectSun": "सीधी धूप से हटें",
+      "moveToShade": "छांव में जाएं",
+      "holdStill": "फोन को स्थिर रखें",
+      "tapToFocus": "फोकस के लिए प्रोडक्ट पर टैप करें",
+      "restPhone": "फोन को किसी चीज़ पर टिकाएं",
+      "plainBackground": "सादा बैकग्राउंड इस्तेमाल करें",
+      "moveCloser": "प्रोडक्ट के पास जाएं",
+      "centreProduct": "प्रोडक्ट को बीच में रखें",
+      "retake": "फोटो दोबारा लें"
+    }
   },
   "voice": {
     "title": "अपना प्रोडक्ट बताएँ",

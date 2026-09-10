@@ -1,5 +1,7 @@
 {
-  "app": { "name": "কারিগর" },
+  "app": {
+    "name": "কারিগর"
+  },
   "common": {
     "loading": "লোড হচ্ছে...",
     "error": "কিছু ভুল হয়েছে",
@@ -59,7 +61,30 @@
     "shaking": "ফোন নড়ছে",
     "capture": "ছবি তুলুন",
     "retake": "আবার তুলুন",
-    "usePhoto": "এই ছবি ব্যবহার করুন"
+    "usePhoto": "এই ছবি ব্যবহার করুন",
+    "errors": {
+      "IMAGE_TOO_DARK": "এই ছবিটি খুব অন্ধকার",
+      "IMAGE_TOO_BRIGHT": "এই ছবিটি খুব উজ্জ্বল",
+      "IMAGE_BLURRY": "এই ছবিটি ঝাপসা",
+      "NO_PRODUCT_DETECTED": "এই ছবিতে পণ্য খুঁজে পাওয়া যায়নি",
+      "FILE_TOO_LARGE": "এই ছবিটি খুব বড়",
+      "INVALID_FORMAT": "এই ফাইলটি ছবি নয়",
+      "PROCESSING_ERROR": "এই ছবিতে কিছু সমস্যা হয়েছে"
+    },
+    "tips": {
+      "moveToLight": "জানালার কাছে যান",
+      "turnOnLamp": "বাতি জ্বালান",
+      "useDaylight": "দিনের আলোয় আবার চেষ্টা করুন",
+      "avoidDirectSun": "সরাসরি রোদ থেকে সরে যান",
+      "moveToShade": "ছায়ায় যান",
+      "holdStill": "ফোন স্থির রাখুন",
+      "tapToFocus": "ফোকাস করতে পণ্যের উপর ট্যাপ করুন",
+      "restPhone": "ফোনটি কিছুর উপর রাখুন",
+      "plainBackground": "সাদামাটা পটভূমি ব্যবহার করুন",
+      "moveCloser": "পণ্যের কাছে যান",
+      "centreProduct": "পণ্যটি মাঝখানে রাখুন",
+      "retake": "আবার ছবি তুলুন"
+    }
   },
   "voice": {
     "title": "আপনার পণ্য বর্ণনা করুন",

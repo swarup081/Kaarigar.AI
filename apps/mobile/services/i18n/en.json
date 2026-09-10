@@ -76,7 +76,30 @@
     "angleBack": "back",
     "angleDetail": "close-up detail",
     "angleSide": "side",
-    "photosCount": "{{current}} of {{total}} photos"
+    "photosCount": "{{current}} of {{total}} photos",
+    "errors": {
+      "IMAGE_TOO_DARK": "This photo is too dark",
+      "IMAGE_TOO_BRIGHT": "This photo is too bright",
+      "IMAGE_BLURRY": "This photo is blurry",
+      "NO_PRODUCT_DETECTED": "Could not find the product in this photo",
+      "FILE_TOO_LARGE": "This photo is too large",
+      "INVALID_FORMAT": "This file is not a photo",
+      "PROCESSING_ERROR": "Something went wrong with this photo"
+    },
+    "tips": {
+      "moveToLight": "Move near a window",
+      "turnOnLamp": "Turn on a lamp",
+      "useDaylight": "Try again in daylight",
+      "avoidDirectSun": "Move out of direct sunlight",
+      "moveToShade": "Move into the shade",
+      "holdStill": "Hold the phone still",
+      "tapToFocus": "Tap the product to focus",
+      "restPhone": "Rest the phone on something steady",
+      "plainBackground": "Use a plain background",
+      "moveCloser": "Move closer to the product",
+      "centreProduct": "Put the product in the centre",
+      "retake": "Take the photo again"
+    }
   },
   "voice": {
     "title": "Describe your product",

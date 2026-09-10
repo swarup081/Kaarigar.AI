@@ -97,6 +97,39 @@ Geographical Indication tag is dropped, and that a below-cost price is clamped.
 
 ---
 
+## 2b. Run the dev gateway
+
+The app talks to one URL. The services listen on separate ports. In production
+the Supabase Edge Function does that routing; locally, `dev_gateway.py` stands
+in for it so you do not need Deno and the Supabase CLI just to try the app.
+
+```bash
+python apps/ai-services/dev_gateway.py
+```
+
+It prints the address your phone should use and `GET /health` reports which
+services are actually up, so a failure is easy to place:
+
+```json
+{"gateway":"ok","reachable_at":"http://192.168.0.246:8000",
+ "services":{"/voice-to-listing":"up","/suggest-price":"up",
+             "/enhance-image":"down","/text-to-speech":"down"}}
+```
+
+`enhance-image` and `text-to-speech` showing "down" is expected. Neither is
+built, and neither is on the path the app uses.
+
+Point the app at the printed address in `apps/mobile/.env`:
+
+```bash
+EXPO_PUBLIC_AI_GATEWAY_URL=http://192.168.0.246:8000
+```
+
+**Not `localhost`.** On a phone, localhost is the phone. Use the machine's
+address on your Wi-Fi, and keep both devices on the same network.
+
+---
+
 ## 3. Run the app
 
 **A development build is required.** Expo Go will not work, because the image

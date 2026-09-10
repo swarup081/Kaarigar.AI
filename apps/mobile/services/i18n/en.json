@@ -18,7 +18,8 @@
     "offline": "You are offline",
     "offlineNote": "Your work is saved. It will sync when you're online.",
     "syncing": "Syncing...",
-    "synced": "All saved"
+    "synced": "All saved",
+    "defaultName": "Artisan"
   },
   "auth": {
     "selectLanguage": "Choose your language",
@@ -27,7 +28,16 @@
     "sendOtp": "Send OTP",
     "verifyOtp": "Verify",
     "welcome": "Welcome to Kaarigar!",
-    "setupProfile": "Let's set up your shop"
+    "setupProfile": "Let's set up your shop",
+    "otpSub": "Enter the 6-digit code we sent you",
+    "verify": "Verify",
+    "phoneSub": "We will send you a code to confirm it is you",
+    "nameLabel": "Your name",
+    "namePlaceholder": "Enter your name",
+    "regionLabel": "Your village or town",
+    "regionPlaceholder": "For example, Varanasi",
+    "craftLabel": "What do you make?",
+    "completeProfile": "Finish setup"
   },
   "onboarding": {
     "slide1Title": "Take a photo",
@@ -50,7 +60,9 @@
     "addProduct": "Add New Product",
     "recentProducts": "Your Recent Products",
     "noProducts": "You haven't added any products yet",
-    "startAdding": "Tap + to add your first product"
+    "startAdding": "Tap + to add your first product",
+    "greetingFallback": "Namaste!",
+    "greetingSub": "Let us list something today"
   },
   "create": {
     "newListing": "New Product",
@@ -109,7 +121,26 @@
     "tapToStop": "Tap to stop",
     "playback": "Listen",
     "reRecord": "Record again",
-    "useRecording": "Use this recording"
+    "useRecording": "Use this recording",
+    "tapToRecord": "Tap to start recording",
+    "saved": "Recording saved",
+    "keepGoing": "Keep talking, a little longer",
+    "bottomHint": "Speak in your own language",
+    "promptTitle": "Try to mention",
+    "prompts": {
+      "material": "What it is made of",
+      "technique": "How you made it",
+      "size": "How big it is",
+      "occasion": "When people use it"
+    },
+    "errors": {
+      "startFailed": "Could not start recording. Try again.",
+      "stopFailed": "Could not save the recording. Try again.",
+      "tooShortTitle": "Too short",
+      "tooShort": "Please speak for at least 3 seconds so we can understand the product.",
+      "noPermission": "Kaarigar needs microphone access to hear your description.",
+      "webUnsupported": "Recording only works on your phone."
+    }
   },
   "review": {
     "title": "Your listing",
@@ -122,7 +153,27 @@
     "technique": "Making technique",
     "heritage": "Heritage story",
     "looksGood": "Looks good!",
-    "processing": "Creating your listing..."
+    "processing": "Creating your listing...",
+    "processingHint": "This takes about 20 seconds",
+    "youSaid": "What you said",
+    "features": "Key features",
+    "details": "Product details",
+    "region": "Region",
+    "regenerate": "Try again",
+    "recordAgain": "Record again",
+    "lowConfidence": "The recording was hard to hear. Please check the text carefully.",
+    "errors": {
+      "AUDIO_TOO_SHORT": "The recording was too short. Please record for at least 3 seconds.",
+      "AUDIO_TOO_LONG": "The recording was too long. Keep it under 5 minutes.",
+      "AUDIO_TOO_NOISY": "There was too much background noise. Please record somewhere quieter.",
+      "LANGUAGE_NOT_SUPPORTED": "That language is not supported yet.",
+      "LLM_FAILED": "The AI service had a problem. Please try again.",
+      "NETWORK": "Could not reach the internet. Check your connection and try again.",
+      "TIMEOUT": "That took too long. Please try again.",
+      "NOT_CONFIGURED": "The AI service is not set up on this device.",
+      "NO_RECORDING": "No recording found. Please record your description first.",
+      "PROCESSING_ERROR": "Something went wrong. Please try again."
+    }
   },
   "pricing": {
     "title": "Suggested price",
@@ -132,7 +183,34 @@
     "recommended": "Recommended",
     "setMyOwn": "Set my own price",
     "usePrice": "Use this price",
-    "floorWarning": "This is below your cost price"
+    "floorWarning": "This is below your cost price",
+    "costTitle": "What did this cost you?",
+    "costSubtitle": "We need this to make sure you never sell below cost",
+    "materialCost": "Material cost",
+    "materialCostHint": "What you spent on thread, clay, wood and so on",
+    "laborHours": "Time spent",
+    "laborHoursHint": "How many hours of work went into it",
+    "hours": "hours",
+    "calculate": "See my price",
+    "range": "Fair range {{min}} to {{max}}",
+    "adjust": "Adjust",
+    "rawMaterial": "Materials",
+    "labor": "Your time",
+    "overhead": "Other costs",
+    "fairMargin": "Fair profit",
+    "floorPrice": "Your cost",
+    "adjustments": "What raises the price",
+    "editCosts": "Change costs",
+    "belowFair": "This is below {{amount}}, which is your cost plus a fair profit.",
+    "degraded": "Market comparison was unavailable. This is your cost price plus a fair profit.",
+    "estimateNote": "These are estimates, not confirmed market data.",
+    "errors": {
+      "INSUFFICIENT_COST_DATA": "Please enter your material cost and hours.",
+      "NETWORK": "Could not reach the internet. Check your connection and try again.",
+      "TIMEOUT": "That took too long. Please try again.",
+      "NOT_CONFIGURED": "The pricing service is not set up on this device.",
+      "PROCESSING_ERROR": "Something went wrong. Please try again."
+    }
   },
   "publish": {
     "title": "Where to sell?",
@@ -143,7 +221,15 @@
     "connected": "Connected",
     "setupRequired": "Setup needed",
     "comingSoon": "Coming soon",
-    "viewStorefront": "View your storefront"
+    "viewStorefront": "View your storefront",
+    "viewCatalog": "See my products",
+    "photoCount": "{{count}} photos ready",
+    "syncing": "Saved. Uploading {{count}} items now.",
+    "savedOffline": "Saved on your phone. {{count}} items will upload when you are online.",
+    "errors": {
+      "noListing": "No listing to publish.",
+      "saveFailed": "Could not save. Please try again."
+    }
   },
   "catalog": {
     "title": "Your Products",

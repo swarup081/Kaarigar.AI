@@ -5,7 +5,7 @@
 
 import { getPendingOutboxEntries, markOutboxSynced, markOutboxError } from './database';
 import { supabase, STORAGE_BUCKETS } from '../api/supabaseClient';
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
@@ -103,23 +103,26 @@ async function syncMedia(entry: {
     const bucket = (payload.bucket as string) ?? STORAGE_BUCKETS.PRODUCT_IMAGES;
     const storagePath = `${payload.artisanId}/${payload.productId}/${fileName}`;
 
-    // Read file
-    const fileInfo = await FileSystem.getInfoAsync(localPath);
-    if (!fileInfo.exists) {
-      console.warn(`File not found: ${localPath}`);
+    // expo-file-system 57 replaced the module-level helpers with File and
+    // Directory classes. The old getInfoAsync and readAsStringAsync now throw.
+    const file = new File(localPath);
+    if (!file.exists) {
+      console.warn(`[sync] file missing, skipping: ${localPath}`);
       continue;
     }
 
-    const base64 = await FileSystem.readAsStringAsync(localPath, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    const bytes = await file.bytes();
+    const contentType =
+      (payload.contentType as string) ??
+      (fileName.endsWith('.png')
+        ? 'image/png'
+        : fileName.endsWith('.m4a')
+          ? 'audio/m4a'
+          : 'image/jpeg');
 
     const { error } = await supabase.storage
       .from(bucket)
-      .upload(storagePath, decode(base64), {
-        contentType: 'image/jpeg',
-        upsert: true,
-      });
+      .upload(storagePath, bytes, { contentType, upsert: true });
 
     if (error) throw new Error(`Storage upload error: ${error.message}`);
   }
@@ -138,12 +141,5 @@ async function syncProfile(entry: {
   if (error) throw new Error(`Profile sync error: ${error.message}`);
 }
 
-// Base64 decode helper
-function decode(base64: string): Uint8Array {
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
+// The base64 decode helper that used to live here is gone: File.bytes()
+// returns a Uint8Array directly, so there is nothing left to convert.

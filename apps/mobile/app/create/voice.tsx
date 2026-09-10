@@ -1,408 +1,358 @@
 // ============================================
-// Kaarigar — Voice Recording Screen
-// Big pulsing mic button, waveform display
-// "Describe your product in your language"
+// Kaarigar — Voice Recording Screen (Step 2)
+// Big pulsing mic button, live duration, playback preview.
+// The recording is the raw material for the whole listing, so
+// this screen is deliberately forgiving: re-record as often as
+// you like, nothing is sent until you press continue.
 // ============================================
 
-import { useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform } from 'react-native';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import * as FileSystem from 'expo-file-system';
+import {
+  useAudioRecorder,
+  useAudioRecorderState,
+  useAudioPlayer,
+  useAudioPlayerStatus,
+  RecordingPresets,
+  setAudioModeAsync,
+  requestRecordingPermissionsAsync,
+} from 'expo-audio';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, TouchTargets, Animation } from '@/constants/theme';
 import { Feather } from '@expo/vector-icons';
+import { useActiveListingStore } from '@/stores';
 
-// Safe import for native-only modules
 let Haptics: any = null;
 if (Platform.OS !== 'web') {
-  try { Haptics = require('expo-haptics'); } catch (e) {}
+  try { Haptics = require('expo-haptics'); } catch { }
 }
 
-type RecordingState = 'idle' | 'recording' | 'recorded' | 'playing';
+/** The service rejects anything under three seconds, so stop the artisan here. */
+const MIN_SECONDS = 3;
+/** Five minutes is the service ceiling. Warn well before it. */
+const MAX_SECONDS = 300;
 
 export default function VoiceScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const [state, setState] = useState<RecordingState>('idle');
-  const [duration, setDuration] = useState(0);
-  const [recordingUri, setRecordingUri] = useState<string | null>(null);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderState = useAudioRecorderState(recorder);
+
+  const storedUri = useActiveListingStore((s) => s.voiceRecordingUri);
+  const storedDuration = useActiveListingStore((s) => s.voiceDurationSeconds);
+  const setVoiceRecording = useActiveListingStore((s) => s.setVoiceRecording);
+  const clearVoiceRecording = useActiveListingStore((s) => s.clearVoiceRecording);
+
+  const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
+  const [isStopping, setIsStopping] = useState(false);
+
+  const player = useAudioPlayer(storedUri ? { uri: storedUri } : null);
+  const playerStatus = useAudioPlayerStatus(player);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const loopRef = useRef<Animated.CompositeAnimation | null>(null);
 
-  // Pulse animation for recording state
-  const startPulse = useCallback(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.15,
-          duration: Animation.pulse / 2,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: Animation.pulse / 2,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [pulseAnim]);
+  const isRecording = recorderState.isRecording;
+  const liveSeconds = Math.floor((recorderState.durationMillis ?? 0) / 1000);
+  const seconds = isRecording ? liveSeconds : storedDuration;
 
-  const stopPulse = useCallback(() => {
-    pulseAnim.stopAnimation();
-    pulseAnim.setValue(1);
-  }, [pulseAnim]);
+  // ─── Permission and audio mode ─────────────
 
-  // Start recording
-  const startRecording = useCallback(async () => {
-    try {
-      // TODO: Replace with actual expo-audio recording implementation
-      // For now, simulate recording state
-      if (Haptics) await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-      setState('recording');
-      setDuration(0);
-      startPulse();
-
-      // Timer for duration display
-      timerRef.current = setInterval(() => {
-        setDuration((prev) => prev + 1);
-      }, 1000);
-
-    } catch (error) {
-      console.error('Failed to start recording:', error);
-    }
-  }, [startPulse]);
-
-  // Stop recording
-  const stopRecording = useCallback(async () => {
-    try {
-      if (Haptics) await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS === 'web') {
+        setPermissionGranted(false);
+        return;
       }
-
-      stopPulse();
-
-      // TODO: Replace with actual expo-audio stop + save
-      const mockUri = `${(FileSystem as any).documentDirectory}recordings/voice_${Date.now()}.m4a`;
-      setRecordingUri(mockUri);
-      setState('recorded');
-
-    } catch (error) {
-      console.error('Failed to stop recording:', error);
-      setState('idle');
-    }
-  }, [stopPulse]);
-
-  // Re-record
-  const reRecord = useCallback(() => {
-    setRecordingUri(null);
-    setDuration(0);
-    setState('idle');
+      const { granted } = await requestRecordingPermissionsAsync();
+      setPermissionGranted(granted);
+      if (granted) {
+        // playsInSilentMode matters: without it, playback of the artisan's own
+        // recording is silent on an iPhone with the ringer switch flipped.
+        await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      }
+    })();
   }, []);
 
-  // Use this recording and proceed
-  const useRecording = useCallback(() => {
-    // TODO: Store recording URI in Zustand/context
-    router.push('/create/review');
-  }, [router]);
+  // ─── Pulse while recording ─────────────────
 
-  // Format duration
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+  useEffect(() => {
+    if (isRecording) {
+      loopRef.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.15, duration: Animation.pulse / 2, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: Animation.pulse / 2, useNativeDriver: true }),
+        ])
+      );
+      loopRef.current.start();
+    } else {
+      loopRef.current?.stop();
+      pulseAnim.setValue(1);
+    }
+    return () => loopRef.current?.stop();
+  }, [isRecording, pulseAnim]);
+
+  // ─── Recording ─────────────────────────────
+
+  const startRecording = useCallback(async () => {
+    try {
+      if (player.playing) player.pause();
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      Haptics?.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      console.warn('[voice] start failed', error);
+      Alert.alert(t('voice.title'), t('voice.errors.startFailed'));
+    }
+  }, [recorder, player, t]);
+
+  const stopRecording = useCallback(async () => {
+    setIsStopping(true);
+    const captured = liveSeconds;
+    try {
+      await recorder.stop();
+      Haptics?.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      const uri = recorder.uri;
+      if (!uri) throw new Error('recorder returned no file');
+
+      if (captured < MIN_SECONDS) {
+        // Rejecting here is far kinder than letting the server reject it
+        // after a slow upload on a weak connection.
+        Alert.alert(t('voice.errors.tooShortTitle'), t('voice.errors.tooShort'));
+        clearVoiceRecording();
+        return;
+      }
+
+      setVoiceRecording(uri, captured);
+    } catch (error) {
+      console.warn('[voice] stop failed', error);
+      Alert.alert(t('voice.title'), t('voice.errors.stopFailed'));
+    } finally {
+      setIsStopping(false);
+    }
+  }, [recorder, liveSeconds, setVoiceRecording, clearVoiceRecording, t]);
+
+  // Hard stop at the service ceiling rather than uploading a doomed file.
+  useEffect(() => {
+    if (isRecording && liveSeconds >= MAX_SECONDS) void stopRecording();
+  }, [isRecording, liveSeconds, stopRecording]);
+
+  const togglePlayback = useCallback(() => {
+    if (playerStatus.playing) {
+      player.pause();
+    } else {
+      player.seekTo(0);
+      player.play();
+    }
+  }, [player, playerStatus.playing]);
+
+  const reRecord = useCallback(() => {
+    if (player.playing) player.pause();
+    clearVoiceRecording();
+  }, [player, clearVoiceRecording]);
+
+  const formatDuration = (value: number) => {
+    const mins = Math.floor(value / 60);
+    const secs = value % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // ─── States ────────────────────────────────
+
+  const hasRecording = Boolean(storedUri) && !isRecording;
+
+  if (permissionGranted === false) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Feather name="mic-off" size={56} color={Colors.textLight} />
+        <Text style={styles.permissionText}>
+          {Platform.OS === 'web' ? t('voice.errors.webUnsupported') : t('voice.errors.noPermission')}
+        </Text>
+        <TouchableOpacity style={styles.secondaryAction} onPress={() => router.back()}>
+          <Text style={styles.secondaryActionText}>{t('common.back')}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Feather name="arrow-left" size={20} color={Colors.primary} style={{ marginRight: 4 }} />
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerBack}>
+          <Feather name="arrow-left" size={20} color={Colors.textOnPrimary} />
           <Text style={styles.backButton}>{t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.stepIndicator}>2 / 5</Text>
       </View>
 
-      {/* Instruction */}
       <View style={styles.instructionContainer}>
         <Text style={styles.title}>{t('voice.title')}</Text>
         <Text style={styles.instruction}>{t('voice.instruction')}</Text>
       </View>
 
-      {/* Waveform / Status Area */}
-      <View style={styles.waveformContainer}>
-        {state === 'recording' && (
-          <View style={styles.waveform}>
-            {/* Simulated waveform bars */}
-            {Array.from({ length: 20 }).map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.waveBar,
-                  {
-                    height: Math.random() * 40 + 10,
-                    backgroundColor: Colors.primary,
-                    opacity: 0.5 + Math.random() * 0.5,
-                  },
-                ]}
-              />
-            ))}
-          </View>
-        )}
-
-        {state === 'recorded' && (
-          <View style={styles.recordedInfo}>
-            <Feather name="check-circle" size={24} color={Colors.secondary} style={{ marginBottom: 8 }} />
-            <Text style={styles.recordedText}>
-              {formatDuration(duration)} recorded
-            </Text>
-          </View>
-        )}
-
-        {/* Duration Display */}
-        {(state === 'recording' || state === 'recorded') && (
-          <Text style={styles.duration}>{formatDuration(duration)}</Text>
-        )}
-      </View>
-
-      {/* Mic Button */}
-      <View style={styles.micContainer}>
-        {state === 'idle' && (
-          <>
-            <Animated.View style={[styles.micButtonWrapper, { transform: [{ scale: pulseAnim }] }]}>
-              <TouchableOpacity
-                style={styles.micButton}
-                onPress={startRecording}
-                activeOpacity={0.7}
-              >
-                <Feather name="mic" size={48} color="#fff" />
-              </TouchableOpacity>
-            </Animated.View>
-            <Text style={styles.micHint}>{t('voice.holdToRecord')}</Text>
-          </>
-        )}
-
-        {state === 'recording' && (
-          <>
-            <Animated.View style={[styles.micButtonWrapper, { transform: [{ scale: pulseAnim }] }]}>
-              <TouchableOpacity
-                style={[styles.micButton, styles.micButtonRecording]}
-                onPress={stopRecording}
-                activeOpacity={0.7}
-              >
-                <Feather name="square" size={48} color="#fff" />
-              </TouchableOpacity>
-            </Animated.View>
-            <Text style={styles.micHintRecording}>{t('voice.tapToStop')}</Text>
-          </>
-        )}
-
-        {state === 'recorded' && (
-          <View style={styles.actionButtons}>
-            {/* Play button */}
-            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-              <Feather name="play" size={20} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.actionButtonText}>{t('voice.playback')}</Text>
-            </TouchableOpacity>
-
-            {/* Re-record */}
-            <TouchableOpacity
-              style={[styles.actionButton, styles.actionButtonOutline]}
-              onPress={reRecord}
-              activeOpacity={0.7}
-            >
-              <Feather name="rotate-ccw" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
-              <Text style={[styles.actionButtonText, styles.actionButtonTextOutline]}>
-                {t('voice.reRecord')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      {/* Bottom: Use Recording / Next */}
-      {state === 'recorded' && (
-        <View style={styles.bottomBar}>
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={useRecording}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.nextButtonText}>{t('voice.useRecording')}</Text>
-            <Feather name="arrow-right" size={20} color="#fff" />
-          </TouchableOpacity>
+      {/* Prompts, so the artisan knows what is worth saying. The listing is
+          only as good as what gets spoken, and most people need a nudge. */}
+      {!isRecording && !hasRecording && (
+        <View style={styles.promptCard}>
+          <Text style={styles.promptTitle}>{t('voice.promptTitle')}</Text>
+          {['material', 'technique', 'size', 'occasion'].map((key) => (
+            <View key={key} style={styles.promptRow}>
+              <Feather name="check" size={14} color={Colors.secondary} />
+              <Text style={styles.promptText}>{t(`voice.prompts.${key}`)}</Text>
+            </View>
+          ))}
         </View>
       )}
+
+      <View style={styles.statusArea}>
+        {isRecording && (
+          <>
+            <View style={styles.recordingDot} />
+            <Text style={styles.durationText}>{formatDuration(seconds)}</Text>
+            <Text style={styles.statusLabel}>{t('voice.recording')}</Text>
+            {seconds < MIN_SECONDS && (
+              <Text style={styles.hintText}>{t('voice.keepGoing')}</Text>
+            )}
+          </>
+        )}
+
+        {hasRecording && (
+          <>
+            <Feather name="check-circle" size={40} color={Colors.secondary} />
+            <Text style={styles.durationText}>{formatDuration(seconds)}</Text>
+            <Text style={styles.statusLabel}>{t('voice.saved')}</Text>
+          </>
+        )}
+      </View>
+
+      {/* Mic button */}
+      <View style={styles.micArea}>
+        {!hasRecording && (
+          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+            <TouchableOpacity
+              style={[styles.micButton, isRecording && styles.micButtonRecording]}
+              onPress={isRecording ? stopRecording : startRecording}
+              disabled={isStopping || permissionGranted === null}
+              activeOpacity={0.8}
+            >
+              <Feather name={isRecording ? 'square' : 'mic'} size={44} color={Colors.textOnPrimary} />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {hasRecording && (
+          <TouchableOpacity style={styles.playButton} onPress={togglePlayback} activeOpacity={0.8}>
+            <Feather name={playerStatus.playing ? 'pause' : 'play'} size={36} color={Colors.primary} />
+            <Text style={styles.playButtonText}>{t('voice.playback')}</Text>
+          </TouchableOpacity>
+        )}
+
+        {!hasRecording && (
+          <Text style={styles.micHint}>
+            {isRecording ? t('voice.tapToStop') : t('voice.tapToRecord')}
+          </Text>
+        )}
+      </View>
+
+      {/* Bottom actions */}
+      <View style={styles.bottomBar}>
+        {hasRecording ? (
+          <>
+            <TouchableOpacity style={styles.secondaryAction} onPress={reRecord}>
+              <Feather name="rotate-ccw" size={18} color={Colors.textLight} />
+              <Text style={styles.secondaryActionText}>{t('voice.reRecord')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.primaryAction}
+              onPress={() => router.push('/create/review')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.primaryActionText}>{t('voice.useRecording')}</Text>
+              <Feather name="arrow-right" size={20} color={Colors.textOnPrimary} />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <Text style={styles.bottomHint}>{t('voice.bottomHint')}</Text>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: 60,
-    paddingBottom: Spacing.md,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: Spacing.lg, paddingTop: 60, paddingBottom: Spacing.md,
     backgroundColor: Colors.primary,
   },
-  backButton: {
-    color: Colors.textOnPrimary,
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.medium,
+  headerBack: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
+  backButton: { color: Colors.textOnPrimary, fontSize: Typography.sizes.lg, fontWeight: Typography.weights.medium },
+  stepIndicator: { color: Colors.textOnPrimary, fontSize: Typography.sizes.md, opacity: 0.8 },
+
+  instructionContainer: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl },
+  title: { fontSize: Typography.sizes.xxl, fontWeight: Typography.weights.bold, color: Colors.text },
+  instruction: { fontSize: Typography.sizes.md, color: Colors.textLight, marginTop: Spacing.xs },
+
+  promptCard: {
+    margin: Spacing.xl, marginTop: Spacing.lg, padding: Spacing.lg,
+    backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, ...Shadows.subtle,
   },
-  stepIndicator: {
-    color: Colors.textOnPrimary,
-    fontSize: Typography.sizes.md,
-    opacity: 0.8,
+  promptTitle: {
+    fontSize: Typography.sizes.sm, color: Colors.textLight, marginBottom: Spacing.sm,
+    fontWeight: Typography.weights.semibold, textTransform: 'uppercase', letterSpacing: 0.5,
   },
-  instructionContainer: {
-    padding: Spacing.xl,
-    alignItems: 'center',
+  promptRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: 3 },
+  promptText: { fontSize: Typography.sizes.md, color: Colors.text, flex: 1 },
+
+  statusArea: { alignItems: 'center', justifyContent: 'center', minHeight: 130, gap: Spacing.xs },
+  recordingDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: Colors.error },
+  durationText: {
+    fontSize: Typography.sizes.xxxl, fontWeight: Typography.weights.bold,
+    color: Colors.text, fontVariant: ['tabular-nums'],
   },
-  title: {
-    fontSize: Typography.sizes.xxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
-  },
-  instruction: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.textLight,
-    textAlign: 'center',
-  },
-  waveformContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-  },
-  waveform: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-    height: 60,
-  },
-  waveBar: {
-    width: 4,
-    borderRadius: 2,
-  },
-  recordedInfo: {
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  recordedIcon: {
-    fontSize: 48,
-  },
-  recordedText: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.text,
-    fontWeight: Typography.weights.medium,
-  },
-  duration: {
-    fontSize: Typography.sizes.xxxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    marginTop: Spacing.lg,
-  },
-  micContainer: {
-    alignItems: 'center',
-    paddingBottom: Spacing.xxxl,
-  },
-  micButtonWrapper: {
-    marginBottom: Spacing.lg,
-  },
+  statusLabel: { fontSize: Typography.sizes.md, color: Colors.textLight },
+  hintText: { fontSize: Typography.sizes.sm, color: Colors.warning, marginTop: Spacing.xs },
+
+  micArea: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.lg },
   micButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Shadows.floating,
+    width: TouchTargets.voiceButton + 40, height: TouchTargets.voiceButton + 40,
+    borderRadius: (TouchTargets.voiceButton + 40) / 2, backgroundColor: Colors.primary,
+    alignItems: 'center', justifyContent: 'center', ...Shadows.floating,
   },
-  micButtonRecording: {
-    backgroundColor: Colors.error,
+  micButtonRecording: { backgroundColor: Colors.error },
+  micHint: { fontSize: Typography.sizes.lg, color: Colors.textLight },
+  playButton: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
+    paddingHorizontal: Spacing.xxl, paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.full, borderWidth: 2, borderColor: Colors.primary,
   },
-  micIcon: {
-    fontSize: 44,
-  },
-  micHint: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.textLight,
-    textAlign: 'center',
-  },
-  micHintRecording: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.error,
-    fontWeight: Typography.weights.semibold,
-    textAlign: 'center',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: Spacing.lg,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.sm,
-  },
-  actionButtonOutline: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  actionButtonIcon: {
-    fontSize: 20,
-  },
-  actionButtonText: {
-    color: Colors.textOnPrimary,
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.semibold,
-  },
-  actionButtonTextOutline: {
-    color: Colors.primary,
-  },
+  playButtonText: { fontSize: Typography.sizes.lg, color: Colors.primary, fontWeight: Typography.weights.semibold },
+
   bottomBar: {
-    padding: Spacing.lg,
-    backgroundColor: Colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
+    padding: Spacing.lg, backgroundColor: Colors.surface,
+    borderTopWidth: 1, borderTopColor: Colors.border,
   },
-  nextButton: {
-    backgroundColor: Colors.secondary,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.md,
-    ...Shadows.card,
+  bottomHint: { flex: 1, textAlign: 'center', fontSize: Typography.sizes.sm, color: Colors.textLight },
+  secondaryAction: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg,
   },
-  nextButtonText: {
-    color: Colors.textOnPrimary,
-    fontSize: Typography.sizes.xl,
-    fontWeight: Typography.weights.bold,
+  secondaryActionText: { fontSize: Typography.sizes.md, color: Colors.textLight },
+  primaryAction: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: Spacing.md, backgroundColor: Colors.secondary,
+    borderRadius: BorderRadius.lg, padding: Spacing.lg, ...Shadows.card,
   },
-  nextButtonArrow: {
-    color: Colors.textOnPrimary,
-    fontSize: Typography.sizes.xl,
+  primaryActionText: { color: Colors.textOnPrimary, fontSize: Typography.sizes.lg, fontWeight: Typography.weights.bold },
+
+  permissionContainer: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.background, padding: Spacing.xxxl, gap: Spacing.lg,
   },
+  permissionText: { fontSize: Typography.sizes.lg, color: Colors.text, textAlign: 'center', lineHeight: 28 },
 });

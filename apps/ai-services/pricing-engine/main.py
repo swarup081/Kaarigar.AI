@@ -28,6 +28,7 @@ from google.genai import types
 
 import pricing
 from config import LANGUAGE_NAMES, settings
+from retry import with_retry
 from schemas import PricingAdvice, PricingRequest
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -183,15 +184,18 @@ def suggest_price(
 
     degraded = False
     try:
-        response = client().models.generate_content(
-            model=settings.gemini_model,
-            contents=_build_prompt(request, floor),
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT,
-                response_mime_type="application/json",
-                response_schema=PricingAdvice,
-                temperature=0.2,
+        response = with_retry(
+            lambda: client().models.generate_content(
+                model=settings.gemini_model,
+                contents=_build_prompt(request, floor),
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
+                    response_mime_type="application/json",
+                    response_schema=PricingAdvice,
+                    temperature=0.2,
+                ),
             ),
+            label="suggest-price",
         )
         advice = response.parsed
         if not isinstance(advice, PricingAdvice):

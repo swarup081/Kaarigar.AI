@@ -34,7 +34,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # both into one process makes those collide, and Python hands back whichever
 # was cached first. Loading each service behind a clean path and a purged
 # module cache is what keeps this runner honest.
-_SERVICE_MODULES = ("main", "config", "schemas", "gemini", "pricing", "gi_tags", "audio")
+_SERVICE_MODULES = ("main", "config", "schemas", "gemini", "pricing", "gi_tags", "audio", "retry")
 
 
 def load_service(directory: str, *names: str):
@@ -226,10 +226,18 @@ def main() -> int:
 
     client = genai.Client(api_key=key)
 
-    (config,) = load_service("voice-cataloger", "config")
+    config, retry = load_service("voice-cataloger", "config", "retry")
     print(f"model: {config.settings.gemini_model}")
     try:
-        client.models.generate_content(model=config.settings.gemini_model, contents="ok")
+        # Through the same retry the services use. Without it a transient 503,
+        # which Gemini returns routinely under load, fails the whole suite and
+        # looks like a real regression.
+        retry.with_retry(
+            lambda: client.models.generate_content(
+                model=config.settings.gemini_model, contents="ok"
+            ),
+            label="preflight",
+        )
         check("configured model is callable", True)
     except Exception as error:  # noqa: BLE001
         print(f"  {FAIL}  configured model is callable: {str(error)[:160]}")

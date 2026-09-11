@@ -14,6 +14,7 @@ from google.genai import types
 
 from config import LANGUAGE_NAMES, settings
 from gi_tags import GITag, format_for_prompt
+from retry import with_retry
 from schemas import GeminiListingPayload
 
 _client: genai.Client | None = None
@@ -143,17 +144,20 @@ def generate_listing(
         )
     )
 
-    response = client().models.generate_content(
-        model=settings.gemini_model,
-        contents=[types.Content(role="user", parts=parts)],
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            response_mime_type="application/json",
-            response_schema=GeminiListingPayload,
-            # Low but not zero. Listings need some fluency; facts are pinned by
-            # the schema and the rules, not by the temperature.
-            temperature=0.3,
+    response = with_retry(
+        lambda: client().models.generate_content(
+            model=settings.gemini_model,
+            contents=[types.Content(role="user", parts=parts)],
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                response_mime_type="application/json",
+                response_schema=GeminiListingPayload,
+                # Low but not zero. Listings need some fluency; facts are pinned
+                # by the schema and the rules, not by the temperature.
+                temperature=0.3,
+            ),
         ),
+        label="voice-to-listing",
     )
 
     parsed = response.parsed

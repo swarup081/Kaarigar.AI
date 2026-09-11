@@ -76,7 +76,8 @@ cd apps/backend && npx supabase start
 Image enhancement runs **on the phone** and works offline. Speech, listing
 generation and pricing run through Gemini behind the AI gateway.
 
-- **[docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md)** — run it, wire it, troubleshoot it
+- **[docs/RUNNING_ON_A_PHONE.md](docs/RUNNING_ON_A_PHONE.md)** — build and run on a real device
+- [docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md) — how the pipeline fits together
 - [apps/ai-services/AI_REQUIREMENTS.md](apps/ai-services/AI_REQUIREMENTS.md) — which models, and why
 - [apps/mobile/services/image/](apps/mobile/services/image/README.md) — on-device image pipeline
 

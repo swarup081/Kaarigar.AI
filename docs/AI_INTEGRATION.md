@@ -132,6 +132,13 @@ address on your Wi-Fi, and keep both devices on the same network.
 
 ## 3. Run the app
 
+> **Running it on an actual phone?** Read
+> [RUNNING_ON_A_PHONE.md](RUNNING_ON_A_PHONE.md) instead of this section. It
+> covers the Windows build issues, the device checks, and a troubleshooting
+> table of every failure hit during the first real device run.
+
+
+
 **A development build is required.** Expo Go will not work, because the image
 pipeline uses native modules. This is not a new cost: `react-native-share` and
 `react-native-view-shot` were already outside Expo Go before this change.

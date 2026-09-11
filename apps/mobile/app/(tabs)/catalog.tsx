@@ -1,24 +1,55 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, Modal, Image, Pressable } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, Modal, Image, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Tabs, useRouter } from 'expo-router';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { useProducts, productTitle, productThumbnail } from '@/hooks/useProducts';
+import type { LocalProduct } from '@/services/offline/database';
 
 type TabType = 'products' | 'categories';
 
-const MOCK_PRODUCTS = [
-  { id: '1', name: 'abc', stock: 'Unlimited', stockStatus: 'green', price: '₹100.00', category: 'UNCATEGORIZED' },
-  { id: '2', name: 'abc', stock: 'Unlimited', stockStatus: 'green', price: '₹143.00', category: 'UNCATEGORIZED' },
-  { id: '3', name: 'abc', stock: 'Unlimited', stockStatus: 'green', price: '₹100.00', category: 'UNCATEGORIZED' },
-  { id: '4', name: 'Cotton T-Shirt', stock: '50', stockStatus: 'green', price: '₹499.00', category: 'Clothing' },
-  { id: '5', name: 'Sd', stock: '6', stockStatus: 'orange', price: '₹232.00', category: 'UNCATEGORIZED' },
-];
+/** Shape the existing table rows expect, built from a saved product. */
+interface ProductRow {
+  id: string;
+  name: string;
+  stock: string;
+  stockStatus: string;
+  price: string;
+  category: string;
+  thumbnail?: string;
+  status: string;
+  synced: boolean;
+}
+
+function toRow(product: LocalProduct, language: string): ProductRow {
+  return {
+    id: product.localId,
+    name: productTitle(product, language),
+    // Stock is not captured anywhere yet, so say so rather than inventing a
+    // number that would read as real inventory.
+    stock: '—',
+    stockStatus: 'green',
+    price: product.finalPrice != null ? `₹${Math.round(product.finalPrice).toLocaleString('en-IN')}` : '—',
+    category: (product.category ?? 'uncategorized').toUpperCase(),
+    thumbnail: productThumbnail(product),
+    status: product.status,
+    synced: product.syncStatus === 'synced',
+  };
+}
 
 export default function CatalogScreen() {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
+  const { products, isLoading } = useProducts();
   const [activeTab, setActiveTab] = useState<TabType>('products');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductRow | null>(null);
+
+  const rows = useMemo(
+    () => products.map((product) => toRow(product, i18n.language)),
+    [products, i18n.language]
+  );
 
   const renderProductMenu = (productId: string) => {
     if (openMenuId !== productId) return null;
@@ -28,7 +59,7 @@ export default function CatalogScreen() {
         <TouchableOpacity 
           style={styles.menuItem}
           onPress={() => {
-            const prod = MOCK_PRODUCTS.find(p => p.id === productId);
+            const prod = rows.find((r) => r.id === productId) ?? null;
             setSelectedProduct(prod);
             setOpenMenuId(null);
           }}
@@ -48,12 +79,16 @@ export default function CatalogScreen() {
     );
   };
 
-  const renderProductItem = ({ item }: { item: any }) => (
+  const renderProductItem = ({ item }: { item: ProductRow }) => (
     <View style={[styles.tableRow, { zIndex: openMenuId === item.id ? 1000 : 1 }]}>
       <View style={[styles.tableCol, { flex: 2, flexDirection: 'row', alignItems: 'center' }]}>
-        <View style={styles.productImagePlaceholder}>
-          <Feather name="image" size={16} color="#9CA3AF" />
-        </View>
+        {item.thumbnail ? (
+          <Image source={{ uri: item.thumbnail }} style={styles.productImagePlaceholder} resizeMode="cover" />
+        ) : (
+          <View style={styles.productImagePlaceholder}>
+            <Feather name="image" size={16} color="#9CA3AF" />
+          </View>
+        )}
         <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
       </View>
       <View style={[styles.tableCol, { flex: 1.5 }]}>
@@ -139,12 +174,27 @@ export default function CatalogScreen() {
             </View>
             
             {/* Products List */}
-            <FlatList
-              data={MOCK_PRODUCTS}
-              keyExtractor={(item) => item.id}
-              renderItem={renderProductItem}
-              contentContainerStyle={styles.listContent}
-            />
+            {isLoading ? (
+              <View style={styles.emptyState}>
+                <ActivityIndicator color="#7C3AED" />
+              </View>
+            ) : rows.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Feather name="package" size={40} color="#D1D5DB" />
+                <Text style={styles.emptyText}>{t('catalog.empty')}</Text>
+                <TouchableOpacity style={styles.emptyCta} onPress={() => router.push('/create/camera')}>
+                  <Feather name="camera" size={16} color="#FFFFFF" />
+                  <Text style={styles.emptyCtaText}>{t('catalog.addFirst')}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <FlatList
+                data={rows}
+                keyExtractor={(item) => item.id}
+                renderItem={renderProductItem}
+                contentContainerStyle={styles.listContent}
+              />
+            )}
           </>
         ) : (
           <>
@@ -429,6 +479,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#4B5563',
   },
+  emptyCta: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16,
+    backgroundColor: '#7C3AED', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 10,
+  },
+  emptyCtaText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   emptyState: {
     flex: 1,
     justifyContent: 'center',

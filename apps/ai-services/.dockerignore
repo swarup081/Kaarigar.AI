@@ -1,0 +1,27 @@
+# The COPY lines in the Dockerfile take whole service directories, which
+# would otherwise pull the local .env straight into the image. Those files
+# hold the Gemini key, and anyone who can pull the image could read it.
+# Secrets are supplied at runtime instead.
+.env
+*.env
+**/.env
+
+# Local virtualenvs. Hundreds of megabytes, platform-specific, and they would
+# shadow the packages the image installs for itself.
+venv/
+.venv*/
+**/venv/
+**/.venv*/
+
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Development-only helpers. dev_gateway routes between separately running
+# services on a laptop; the container runs serve_all instead.
+dev_gateway.py
+smoke_test.py
+
+*.wav
+*.m4a
+*.md

@@ -65,9 +65,10 @@ objects. The more popular `react-native-background-remover` uses **Selfie**
 Segmentation, which only finds people and would return an empty matte for a pot
 or a dupatta.
 
-**Model.** `gemini-2.5-flash`, pinned via `GEMINI_MODEL`. It is still on the
-free tier. `gemini-3-flash` is the current free-tier recommendation and is a
-drop-in swap when you want it.
+**Model.** `gemini-3.6-flash`, set via `GEMINI_MODEL`. Do **not** pin the 2.5
+family. It still appears in the model listing, but calling it returns 404 with
+"no longer available to new users" on keys issued recently; 3.6 is what Google's
+own error message recommends. Verified against a live key.
 
 **Two guardrails are enforced in code, not in prompts.** The Geographical
 Indication tag must survive a fuzzy match against a region-filtered shortlist,

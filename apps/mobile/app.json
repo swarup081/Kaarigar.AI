@@ -56,7 +56,22 @@
         }
       ],
       "expo-sensors",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "./plugins/withMlKitDependencies",
+        {
+          "models": [
+            "subject_segment",
+            "barcode_ui"
+          ]
+        }
+      ],
+      [
+        "./plugins/withCmakeVersion",
+        {
+          "version": "4.1.2"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

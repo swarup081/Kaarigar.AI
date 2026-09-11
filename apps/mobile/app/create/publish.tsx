@@ -1,147 +1,240 @@
 // ============================================
 // Kaarigar — Publish Screen (Step 5)
-// Channel selection + one-tap publish
+// Saves the listing to SQLite and queues the uploads.
+//
+// Saving never depends on the network. The artisan's work is safe
+// the moment they press the button; the connection catches up.
 // ============================================
 
-import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useState, useCallback, useMemo } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  Image, ActivityIndicator, Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
-import { CHANNELS, type ChannelConfig } from '@/constants/channels';
+import { CHANNELS } from '@/constants/channels';
+import { saveListing } from '@/services/offline/saveListing';
+import { currentArtisanId } from '@/services/offline/artisan';
+import { processSyncQueue } from '@/services/offline/syncService';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useActiveListingStore, useAuthStore, useSyncStore } from '@/stores';
+import { usePhotoStore } from '@/stores/imageStore';
+import type { LanguageCode } from '@kaarigar/shared-types';
+
+type Phase = 'choosing' | 'saving' | 'done';
 
 export default function PublishScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const language = (i18n.language as LanguageCode) || 'hi';
+  const network = useNetworkStatus();
 
-  const [selectedChannels, setSelectedChannels] = useState<string[]>(['storefront']);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [isPublished, setIsPublished] = useState(false);
+  const profile = useAuthStore((s) => s.artisanProfile);
+  const listing = useActiveListingStore((s) => s.listing);
+  const transcript = useActiveListingStore((s) => s.transcript);
+  const edits = useActiveListingStore((s) => s.listingEdits);
+  const pricing = useActiveListingStore((s) => s.pricing);
+  const finalPrice = useActiveListingStore((s) => s.finalPrice);
+  const rawMaterialCost = useActiveListingStore((s) => s.rawMaterialCost);
+  const laborHours = useActiveListingStore((s) => s.laborHours);
+  const voiceUri = useActiveListingStore((s) => s.voiceRecordingUri);
+  const resetListing = useActiveListingStore((s) => s.reset);
 
-  const toggleChannel = (channelId: string) => {
-    const channel = CHANNELS.find(c => c.id === channelId);
-    if (!channel?.mvpReady) return;
+  const getUris = usePhotoStore((s) => s.getPublishableUris);
+  const resetPhotos = usePhotoStore((s) => s.reset);
+  const setPendingCount = useSyncStore((s) => s.setPendingCount);
 
-    setSelectedChannels(prev =>
-      prev.includes(channelId)
-        ? prev.filter(id => id !== channelId)
-        : [...prev, channelId]
+  const available = useMemo(() => CHANNELS.filter((c) => c.mvpReady), []);
+  const [selected, setSelected] = useState<string[]>(['storefront']);
+  const [phase, setPhase] = useState<Phase>('choosing');
+  const [queued, setQueued] = useState(0);
+
+  const imageUris = useMemo(() => getUris(), [getUris]);
+  const heroUri = imageUris[0];
+
+  const toggle = (channelId: string) =>
+    setSelected((current) =>
+      current.includes(channelId)
+        ? current.filter((c) => c !== channelId)
+        : [...current, channelId]
     );
-  };
 
-  const handlePublish = async () => {
-    setIsPublishing(true);
-    // TODO: Implement actual publishing logic
-    setTimeout(() => {
-      setIsPublishing(false);
-      setIsPublished(true);
-    }, 2000);
-  };
+  const publish = useCallback(async () => {
+    if (!listing) {
+      Alert.alert(t('common.error'), t('publish.errors.noListing'));
+      return;
+    }
 
-  if (isPublished) {
+    setPhase('saving');
+    try {
+      const result = await saveListing({
+        artisanId: currentArtisanId(profile?.id),
+        language,
+        listing,
+        transcript,
+        edits,
+        pricing,
+        finalPrice,
+        rawMaterialCost,
+        laborHours,
+        imageUris,
+        voiceUri,
+        channels: selected,
+      });
+
+      setQueued(result.queuedUploads + 1);
+      setPhase('done');
+
+      // Try to drain the queue immediately, but never block on it. A failure
+      // here is not a failure of the publish: the rows are already safe locally.
+      if (network.canSync) {
+        processSyncQueue()
+          .then(({ synced, failed }) => {
+            setPendingCount(Math.max(0, result.queuedUploads + 1 - synced));
+            if (failed > 0) console.warn(`[publish] ${failed} sync operations failed`);
+          })
+          .catch((error) => console.warn('[publish] sync failed', error));
+      } else {
+        setPendingCount(result.queuedUploads + 1);
+      }
+    } catch (error) {
+      console.warn('[publish] save failed', error);
+      setPhase('choosing');
+      Alert.alert(t('common.error'), t('publish.errors.saveFailed'));
+    }
+  }, [
+    listing, profile, language, transcript, edits, pricing, finalPrice,
+    rawMaterialCost, laborHours, imageUris, voiceUri, selected,
+    network.canSync, setPendingCount, t,
+  ]);
+
+  const finish = useCallback(() => {
+    resetListing();
+    resetPhotos();
+    router.replace('/(tabs)/catalog');
+  }, [resetListing, resetPhotos, router]);
+
+  // ─── Saved ─────────────────────────────────
+
+  if (phase === 'done') {
     return (
-      <View style={styles.successContainer}>
-        <Feather name="check-circle" size={64} color="#10B981" style={{ marginBottom: 16 }} />
+      <View style={styles.centred}>
+        <View style={styles.successCircle}>
+          <Feather name="check" size={52} color={Colors.textOnPrimary} />
+        </View>
         <Text style={styles.successTitle}>{t('publish.published')}</Text>
-        <Text style={styles.successSubtitle}>
-          Published to {selectedChannels.length} channel{selectedChannels.length > 1 ? 's' : ''}
+
+        <Text style={styles.successBody}>
+          {network.isConnected
+            ? t('publish.syncing', { count: queued })
+            : t('publish.savedOffline', { count: queued })}
         </Text>
 
-        <TouchableOpacity
-          style={styles.viewButton}
-          onPress={() => router.replace('/(tabs)/catalog')}
-        >
-          <Text style={styles.viewButtonText}>{t('publish.viewStorefront')}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.shareButton}
-          onPress={() => {/* TODO: WhatsApp share */}}
-        >
-          <Feather name="message-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.shareButtonText}>Share on WhatsApp</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.addAnotherButton}
-          onPress={() => router.replace('/create/camera')}
-        >
-          <Feather name="plus" size={16} color={Colors.primary} style={{ marginRight: 8 }} />
-          <Text style={styles.addAnotherText}>Add another product</Text>
+        <TouchableOpacity style={styles.primaryButton} onPress={finish} activeOpacity={0.8}>
+          <Text style={styles.primaryButtonText}>{t('publish.viewCatalog')}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
+  // ─── Choosing ──────────────────────────────
+
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Feather name="arrow-left" size={20} color={Colors.primary} style={{ marginRight: 4 }} />
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerBack}>
+          <Feather name="arrow-left" size={20} color={Colors.textOnPrimary} />
           <Text style={styles.backButton}>{t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.stepIndicator}>5 / 5</Text>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        <Text style={styles.title}>{t('publish.title')}</Text>
-        <Text style={styles.subtitle}>{t('publish.selectChannels')}</Text>
+        {/* A last look at what is about to be published. */}
+        <View style={styles.summaryCard}>
+          {heroUri && <Image source={{ uri: heroUri }} style={styles.thumb} resizeMode="cover" />}
+          <View style={styles.summaryText}>
+            <Text style={styles.summaryTitle} numberOfLines={2}>
+              {edits.title ?? listing?.title[language] ?? listing?.title.en ?? ''}
+            </Text>
+            {finalPrice ? (
+              <Text style={styles.summaryPrice}>₹{Math.round(finalPrice).toLocaleString('en-IN')}</Text>
+            ) : null}
+            <Text style={styles.summaryMeta}>
+              {t('publish.photoCount', { count: imageUris.length })}
+            </Text>
+          </View>
+        </View>
 
-        {/* Channel Cards */}
-        {CHANNELS.map((channel) => (
-          <TouchableOpacity
-            key={channel.id}
-            style={[
-              styles.channelCard,
-              selectedChannels.includes(channel.id) && styles.channelCardSelected,
-              !channel.mvpReady && styles.channelCardDisabled,
-            ]}
-            onPress={() => toggleChannel(channel.id)}
-            activeOpacity={0.7}
-            disabled={!channel.mvpReady}
-          >
-            <Text style={styles.channelIcon}>{channel.icon}</Text>
-            <View style={styles.channelContent}>
-              <Text style={styles.channelName}>{channel.nameHi}</Text>
-              <Text style={styles.channelNameEn}>{channel.nameEn}</Text>
-              <Text style={styles.channelDesc}>{channel.description.hi}</Text>
+        <Text style={styles.title}>{t('publish.selectChannels')}</Text>
+
+        {available.map((channel) => {
+          const isOn = selected.includes(channel.id);
+          return (
+            <TouchableOpacity
+              key={channel.id}
+              style={[styles.channel, isOn && styles.channelSelected]}
+              onPress={() => toggle(channel.id)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.channelDot, { backgroundColor: channel.color }]} />
+              <View style={styles.channelBody}>
+                <Text style={styles.channelName}>
+                  {language === 'hi' ? channel.nameHi : channel.nameEn}
+                </Text>
+                <Text style={styles.channelDesc}>
+                  {language === 'hi' ? channel.description.hi : channel.description.en}
+                </Text>
+              </View>
+              <Feather
+                name={isOn ? 'check-circle' : 'circle'}
+                size={24}
+                color={isOn ? Colors.secondary : Colors.border}
+              />
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Channels that need an integration we have not built yet. Showing
+            them disabled is honest; hiding them would imply they do not exist. */}
+        {CHANNELS.filter((c) => !c.mvpReady).map((channel) => (
+          <View key={channel.id} style={[styles.channel, styles.channelDisabled]}>
+            <View style={[styles.channelDot, { backgroundColor: Colors.offline }]} />
+            <View style={styles.channelBody}>
+              <Text style={styles.channelName}>
+                {language === 'hi' ? channel.nameHi : channel.nameEn}
+              </Text>
+              <Text style={styles.channelDesc}>{t('publish.comingSoon')}</Text>
             </View>
-            <View style={styles.channelStatus}>
-              {channel.mvpReady ? (
-                selectedChannels.includes(channel.id) ? (
-                  <View style={styles.checkmark}>
-                    <Feather name="check" size={12} color="#fff" />
-                  </View>
-                ) : (
-                  <View style={styles.unchecked} />
-                )
-              ) : (
-                <Text style={styles.comingSoonBadge}>{t('publish.comingSoon')}</Text>
-              )}
-            </View>
-          </TouchableOpacity>
+          </View>
         ))}
+
+        {!network.isConnected && (
+          <View style={styles.noticeCard}>
+            <Feather name="wifi-off" size={16} color={Colors.textLight} />
+            <Text style={styles.noticeText}>{t('common.offlineNote')}</Text>
+          </View>
+        )}
       </ScrollView>
 
-      {/* Publish Button */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
-          style={[
-            styles.publishButton,
-            selectedChannels.length === 0 && styles.publishButtonDisabled,
-            isPublishing && styles.publishButtonLoading,
-          ]}
-          onPress={handlePublish}
-          disabled={selectedChannels.length === 0 || isPublishing}
+          style={[styles.primaryButton, selected.length === 0 && styles.buttonDisabled]}
+          onPress={publish}
+          disabled={selected.length === 0 || phase === 'saving'}
           activeOpacity={0.8}
         >
-          <Text style={styles.publishButtonText}>
-            {isPublishing
-              ? t('publish.publishing')
-              : `${t('publish.publish')} (${selectedChannels.length})`}
-          </Text>
+          {phase === 'saving' ? (
+            <ActivityIndicator color={Colors.textOnPrimary} />
+          ) : (
+            <>
+              <Feather name="upload-cloud" size={20} color={Colors.textOnPrimary} />
+              <Text style={styles.primaryButtonText}>{t('publish.publish')}</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -150,65 +243,72 @@ export default function PublishScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  centred: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.background, padding: Spacing.xxxl, gap: Spacing.lg,
+  },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: Spacing.lg, paddingTop: 60, paddingBottom: Spacing.md, backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.lg, paddingTop: 60, paddingBottom: Spacing.md,
+    backgroundColor: Colors.primary,
   },
+  headerBack: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
   backButton: { color: Colors.textOnPrimary, fontSize: Typography.sizes.lg, fontWeight: Typography.weights.medium },
   stepIndicator: { color: Colors.textOnPrimary, fontSize: Typography.sizes.md, opacity: 0.8 },
+
   scrollView: { flex: 1 },
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxxl },
-  title: { fontSize: Typography.sizes.xxl, fontWeight: Typography.weights.bold, color: Colors.text, marginBottom: Spacing.xs },
-  subtitle: { fontSize: Typography.sizes.md, color: Colors.textLight, marginBottom: Spacing.xl },
-  channelCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg, padding: Spacing.lg, marginBottom: Spacing.md,
-    borderWidth: 2, borderColor: Colors.border, ...Shadows.subtle,
+  title: {
+    fontSize: Typography.sizes.lg, fontWeight: Typography.weights.bold,
+    color: Colors.text, marginBottom: Spacing.md,
   },
-  channelCardSelected: { borderColor: Colors.primary, backgroundColor: '#FFF3E0' },
-  channelCardDisabled: { opacity: 0.5 },
-  channelIcon: { fontSize: 36, marginRight: Spacing.lg },
-  channelContent: { flex: 1 },
-  channelName: { fontSize: Typography.sizes.lg, fontWeight: Typography.weights.bold, color: Colors.text },
-  channelNameEn: { fontSize: Typography.sizes.sm, color: Colors.textLight, marginTop: 2 },
-  channelDesc: { fontSize: Typography.sizes.sm, color: Colors.textLight, marginTop: Spacing.xs },
-  channelStatus: { marginLeft: Spacing.md },
-  checkmark: {},
-  checkmarkText: { fontSize: 24 },
-  unchecked: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: Colors.border },
-  comingSoonBadge: {
-    fontSize: Typography.sizes.xs, color: Colors.warning,
-    fontWeight: Typography.weights.semibold, backgroundColor: '#FFF3E0',
-    paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm,
-  },
-  bottomBar: { padding: Spacing.lg, backgroundColor: Colors.surface, borderTopWidth: 1, borderTopColor: Colors.border },
-  publishButton: {
-    backgroundColor: Colors.primary, borderRadius: BorderRadius.lg,
-    padding: Spacing.lg, alignItems: 'center', ...Shadows.floating,
-  },
-  publishButtonDisabled: { backgroundColor: Colors.offline, ...Shadows.subtle },
-  publishButtonLoading: { opacity: 0.7 },
-  publishButtonText: { color: Colors.textOnPrimary, fontSize: Typography.sizes.xl, fontWeight: Typography.weights.bold },
 
-  // Success state
-  successContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xxxl, backgroundColor: Colors.background },
-  successIcon: { fontSize: 96, marginBottom: Spacing.xl },
-  successTitle: { fontSize: Typography.sizes.xxxl, fontWeight: Typography.weights.bold, color: Colors.secondary, marginBottom: Spacing.sm },
-  successSubtitle: { fontSize: Typography.sizes.lg, color: Colors.textLight, marginBottom: Spacing.xxxl },
-  viewButton: {
-    backgroundColor: Colors.primary, borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.xxl, paddingVertical: Spacing.lg,
-    marginBottom: Spacing.lg, width: '100%', alignItems: 'center',
+  summaryCard: {
+    flexDirection: 'row', gap: Spacing.lg, backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg, padding: Spacing.lg,
+    marginBottom: Spacing.xl, ...Shadows.subtle,
   },
-  viewButtonText: { color: Colors.textOnPrimary, fontSize: Typography.sizes.lg, fontWeight: Typography.weights.bold },
-  shareButton: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.whatsapp,
-    borderRadius: BorderRadius.lg, paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.lg, gap: Spacing.sm, marginBottom: Spacing.lg,
-    width: '100%', justifyContent: 'center',
+  thumb: { width: 76, height: 76, borderRadius: BorderRadius.md, backgroundColor: Colors.surfaceElevated },
+  summaryText: { flex: 1, justifyContent: 'center' },
+  summaryTitle: { fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold, color: Colors.text },
+  summaryPrice: { fontSize: Typography.sizes.xl, fontWeight: Typography.weights.bold, color: Colors.primary, marginTop: 2 },
+  summaryMeta: { fontSize: Typography.sizes.sm, color: Colors.textLight, marginTop: 2 },
+
+  channel: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.lg,
+    backgroundColor: Colors.surface, borderRadius: BorderRadius.lg,
+    padding: Spacing.lg, marginBottom: Spacing.md,
+    borderWidth: 2, borderColor: 'transparent', ...Shadows.subtle,
   },
-  shareButtonIcon: { fontSize: 20 },
-  shareButtonText: { color: Colors.textOnPrimary, fontSize: Typography.sizes.lg, fontWeight: Typography.weights.bold },
-  addAnotherButton: { marginTop: Spacing.lg },
-  addAnotherText: { color: Colors.accent, fontSize: Typography.sizes.lg, fontWeight: Typography.weights.semibold },
+  channelSelected: { borderColor: Colors.secondary },
+  channelDisabled: { opacity: 0.5 },
+  channelDot: { width: 12, height: 12, borderRadius: 6 },
+  channelBody: { flex: 1 },
+  channelName: { fontSize: Typography.sizes.lg, fontWeight: Typography.weights.semibold, color: Colors.text },
+  channelDesc: { fontSize: Typography.sizes.sm, color: Colors.textLight, marginTop: 2, lineHeight: 18 },
+
+  noticeCard: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
+    backgroundColor: Colors.surfaceElevated, borderRadius: BorderRadius.lg, padding: Spacing.lg,
+  },
+  noticeText: { flex: 1, fontSize: Typography.sizes.sm, color: Colors.textLight, lineHeight: 20 },
+
+  successCircle: {
+    width: 108, height: 108, borderRadius: 54, backgroundColor: Colors.secondary,
+    alignItems: 'center', justifyContent: 'center', ...Shadows.floating,
+  },
+  successTitle: { fontSize: Typography.sizes.xxl, fontWeight: Typography.weights.bold, color: Colors.text },
+  successBody: { fontSize: Typography.sizes.md, color: Colors.textLight, textAlign: 'center', lineHeight: 24 },
+
+  bottomBar: {
+    padding: Spacing.lg, backgroundColor: Colors.surface,
+    borderTopWidth: 1, borderTopColor: Colors.border,
+  },
+  primaryButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: Spacing.md, backgroundColor: Colors.secondary,
+    borderRadius: BorderRadius.lg, padding: Spacing.lg, alignSelf: 'stretch', ...Shadows.card,
+  },
+  primaryButtonText: { color: Colors.textOnPrimary, fontSize: Typography.sizes.xl, fontWeight: Typography.weights.bold },
+  buttonDisabled: { opacity: 0.4 },
 });

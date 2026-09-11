@@ -97,7 +97,47 @@ Geographical Indication tag is dropped, and that a below-cost price is clamped.
 
 ---
 
+## 2b. Run the dev gateway
+
+The app talks to one URL. The services listen on separate ports. In production
+the Supabase Edge Function does that routing; locally, `dev_gateway.py` stands
+in for it so you do not need Deno and the Supabase CLI just to try the app.
+
+```bash
+python apps/ai-services/dev_gateway.py
+```
+
+It prints the address your phone should use and `GET /health` reports which
+services are actually up, so a failure is easy to place:
+
+```json
+{"gateway":"ok","reachable_at":"http://192.168.0.246:8000",
+ "services":{"/voice-to-listing":"up","/suggest-price":"up",
+             "/enhance-image":"down","/text-to-speech":"down"}}
+```
+
+`enhance-image` and `text-to-speech` showing "down" is expected. Neither is
+built, and neither is on the path the app uses.
+
+Point the app at the printed address in `apps/mobile/.env`:
+
+```bash
+EXPO_PUBLIC_AI_GATEWAY_URL=http://192.168.0.246:8000
+```
+
+**Not `localhost`.** On a phone, localhost is the phone. Use the machine's
+address on your Wi-Fi, and keep both devices on the same network.
+
+---
+
 ## 3. Run the app
+
+> **Running it on an actual phone?** Read
+> [RUNNING_ON_A_PHONE.md](RUNNING_ON_A_PHONE.md) instead of this section. It
+> covers the Windows build issues, the device checks, and a troubleshooting
+> table of every failure hit during the first real device run.
+
+
 
 **A development build is required.** Expo Go will not work, because the image
 pipeline uses native modules. This is not a new cost: `react-native-share` and
@@ -277,34 +317,37 @@ market data until that table is seeded.
 
 ## 7. What is wired, and what is not
 
+The create flow is connected end to end. Capture, record, generate, price,
+publish, and the listing lands in SQLite with its uploads queued.
+
 | Piece | State |
 |---|---|
-| Camera capture to enhanced photo | Wired, runs on capture |
-| Photo results in a store | Wired, `stores/imageStore.ts` |
+| Camera to enhanced photo | Wired, runs in the background between shots |
+| Voice recording | Wired, real `expo-audio` capture with playback |
+| Listing generation | Wired, calls the service on arrival at review |
+| Editing the listing | Wired, artisan corrections override the model |
+| Cost entry and pricing | Wired, asks for materials and hours first |
+| Publish to SQLite and outbox | Wired |
+| Media and product upload | Wired, queued and drained when online |
 | Error and tip translations | Wired, all four languages |
-| voice-cataloger service | Built, tested live |
-| pricing-engine service | Built, tested live |
-| `create/voice.tsx` recording | **Still mocked.** Writes a fake file path |
-| `create/review.tsx` | **Still mocked.** Hardcoded dupatta listing |
-| `create/pricing.tsx` | **Still mocked.** Hardcoded price breakdown |
 | Server-side image matte | Not built, rescue path only |
-| Upload of enhanced photos | Blocked, see below |
+| Text to speech readback | Not built |
+| Real channel delivery | Not built, publishing records intent locally |
 
-### Three things that block a full run
+### Still needed from the backend
 
-1. **`services/offline/syncService.ts` will throw.** It calls
-   `FileSystem.getInfoAsync` and `readAsStringAsync`, which this Expo version
-   removed; they now raise at runtime. The same problem in `create/camera.tsx`
-   is already fixed, and the pattern to copy is there: `new File(uri)`,
-   `Paths.document`, `file.base64()`. Until this is fixed nothing reaches
-   Supabase Storage.
-2. **The Supabase service role key has not been shared.** The services cannot
-   upload their outputs without it.
-3. **Bucket names disagree.** `apps/ai-services/README.md` says `product-media`.
-   Migration 004 creates `enhanced-images` and `voice-recordings`. The migration
-   is what exists, so that README is wrong.
+1. **The Supabase service role key.** The outbox queues uploads correctly, but
+   they cannot land without it.
+2. **A seeded `price_references` table.** Until then comparables are model
+   estimates, labelled as such, and `sampleSize` stays 0.
 
----
+### Free-tier quota is real
+
+Gemini's free tier allows roughly 1,500 requests a day. Listing generation and
+pricing are one call each, so a full run through the create flow costs two. That
+is plenty for development, but a demo day with many devices hitting one key will
+exhaust it. When it does, pricing degrades to the floor price and says so, and
+listing generation returns `LLM_FAILED` with a retry button.
 
 ## 8. Two contract corrections
 

@@ -111,6 +111,53 @@ function filePart(uri: string, name: string, type: string) {
   return { uri, name, type } as unknown as Blob;
 }
 
+/**
+ * Posts multipart form data over XMLHttpRequest.
+ *
+ * React Native 0.86's fetch rejects the `{uri, name, type}` file part that
+ * FormData is documented to take, failing with "Unsupported FormDataPart
+ * implementation" before any request leaves the device. XMLHttpRequest goes
+ * through the older networking path, which streams the file straight from disk
+ * and handles that shape correctly.
+ *
+ * Keeping the file on disk also matters for size: a voice note read into
+ * memory as a Blob would be held twice, and these run on cheap phones.
+ */
+function postMultipart(
+  url: string,
+  form: FormData,
+  headers: Record<string, string>,
+  timeoutMs: number,
+  signal?: AbortSignal
+): Promise<{ status: number; text: string }> {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', url);
+
+    // Never set Content-Type: the runtime must add its own multipart boundary.
+    for (const [key, value] of Object.entries(headers)) {
+      if (key.toLowerCase() !== 'content-type') request.setRequestHeader(key, value);
+    }
+
+    request.timeout = timeoutMs;
+    request.onload = () => resolve({ status: request.status, text: request.responseText });
+    request.onerror = () => reject(new Error('network request failed'));
+    request.ontimeout = () => {
+      const error = new Error('request timed out');
+      error.name = 'AbortError';
+      reject(error);
+    };
+    request.onabort = () => {
+      const error = new Error('request aborted');
+      error.name = 'AbortError';
+      reject(error);
+    };
+
+    signal?.addEventListener('abort', () => request.abort());
+    request.send(form);
+  });
+}
+
 async function callGateway(
   endpoint: string,
   init: { method: string; body: FormData | string; contentTypeJson?: boolean },
@@ -130,39 +177,58 @@ async function callGateway(
   // Never set Content-Type for FormData. The runtime must add its own
   // multipart boundary, and overriding it makes the server reject the body.
 
-  let response: Response;
+  const url = `${AI_GATEWAY_URL}${endpoint}`;
+  let status: number;
+  let text: string;
+
   try {
-    response = await fetch(`${AI_GATEWAY_URL}${endpoint}`, {
-      method: init.method,
-      headers,
-      body: init.body,
-      signal: controller.signal,
-    });
+    if (init.body instanceof FormData) {
+      const result = await postMultipart(
+        url,
+        init.body,
+        headers,
+        options.timeoutMs ?? 30000,
+        options.signal
+      );
+      status = result.status;
+      text = result.text;
+    } else {
+      const response = await fetch(url, {
+        method: init.method,
+        headers,
+        body: init.body,
+        signal: controller.signal,
+      });
+      status = response.status;
+      text = await response.text();
+    }
   } catch (error) {
     clearTimeout(timeout);
     if ((error as Error).name === 'AbortError') {
       throw new AIServiceError('TIMEOUT', 'The AI service took too long to respond', 408);
     }
-    throw new AIServiceError('NETWORK', 'Could not reach the AI service');
+    // Keep the underlying cause. A bare "network error" is untraceable in the
+    // field, where the real reason is usually a bad file URI or a wrong host.
+    const cause = (error as Error)?.message ?? String(error);
+    console.warn(`[ai] ${init.method} ${url} failed: ${cause}`);
+    throw new AIServiceError('NETWORK', `Could not reach the AI service: ${cause}`);
   }
   clearTimeout(timeout);
-
-  const text = await response.text();
   let payload: any;
   try {
     payload = JSON.parse(text);
   } catch {
-    throw new AIServiceError('PROCESSING_ERROR', `Unreadable response: ${text.slice(0, 200)}`, response.status);
+    throw new AIServiceError('PROCESSING_ERROR', `Unreadable response: ${text.slice(0, 200)}`, status);
   }
 
   // The services return a typed error body on failure. Prefer its code over
   // the HTTP status, because that is what the screens translate.
-  if (!response.ok || payload?.status === 'failed' || payload?.error) {
+  if (status < 200 || status >= 300 || payload?.status === 'failed' || payload?.error) {
     const error = payload?.error ?? {};
     throw new AIServiceError(
       error.code ?? 'PROCESSING_ERROR',
-      error.message ?? `AI service returned ${response.status}`,
-      response.status
+      error.message ?? `AI service returned ${status}`,
+      status
     );
   }
 
@@ -193,7 +259,14 @@ export async function voiceToListing(
 
   const audioName = params.audioUri.split('/').pop() || 'voice.m4a';
   const audioType = audioName.endsWith('.wav') ? 'audio/wav' : 'audio/m4a';
-  form.append('audio', filePart(params.audioUri, audioName, audioType));
+  // Android's networking stack rejects a bare path and reports it as a generic
+  // network failure. expo-audio returns a file:// URI on Android but not always
+  // on every platform, so normalise before handing it over.
+  const audioUri = params.audioUri.startsWith('file://') || params.audioUri.startsWith('content://')
+    ? params.audioUri
+    : `file://${params.audioUri}`;
+  console.log(`[ai] uploading audio ${audioUri} as ${audioType}`);
+  form.append('audio', filePart(audioUri, audioName, audioType));
 
   form.append('source_language', params.sourceLanguage);
   form.append('target_languages', JSON.stringify(params.targetLanguages ?? ['en', params.sourceLanguage]));
@@ -204,7 +277,10 @@ export async function voiceToListing(
     form.append('detected_attributes', JSON.stringify({ dominantColors: params.dominantColors }));
   }
   if (params.imageUri) {
-    form.append('image', filePart(params.imageUri, 'product.jpg', 'image/jpeg'));
+    const imageUri = params.imageUri.startsWith('file://') || params.imageUri.startsWith('content://')
+      ? params.imageUri
+      : `file://${params.imageUri}`;
+    form.append('image', filePart(imageUri, 'product.jpg', 'image/jpeg'));
   }
 
   const payload = (await callGateway(

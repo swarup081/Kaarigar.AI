@@ -4,13 +4,20 @@
 // ============================================
 
 import { getPendingOutboxEntries, markOutboxSynced, markOutboxError } from './database';
-import { supabase, STORAGE_BUCKETS } from '../api/supabaseClient';
+import { getSupabase, isSupabaseConfigured, STORAGE_BUCKETS } from '../api/supabaseClient';
 import { File } from 'expo-file-system';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
 
 export async function processSyncQueue(): Promise<{ synced: number; failed: number }> {
+  // No backend configured yet. Leave the outbox untouched so the work syncs
+  // once someone fills in the Supabase keys, rather than exhausting retries.
+  if (!isSupabaseConfigured()) {
+    console.warn('[sync] Supabase not configured, leaving the queue for later');
+    return { synced: 0, failed: 0 };
+  }
+
   const entries = await getPendingOutboxEntries();
   let synced = 0;
   let failed = 0;
@@ -58,7 +65,7 @@ async function syncProduct(entry: {
 
   switch (operation) {
     case 'create': {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from('products')
         .insert(payload)
         .select('id')
@@ -71,7 +78,7 @@ async function syncProduct(entry: {
       break;
     }
     case 'update': {
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from('products')
         .update(payload)
         .eq('id', payload.id);
@@ -80,7 +87,7 @@ async function syncProduct(entry: {
       break;
     }
     case 'delete': {
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from('products')
         .delete()
         .eq('id', payload.id);
@@ -120,7 +127,7 @@ async function syncMedia(entry: {
           ? 'audio/m4a'
           : 'image/jpeg');
 
-    const { error } = await supabase.storage
+    const { error } = await getSupabase().storage
       .from(bucket)
       .upload(storagePath, bytes, { contentType, upsert: true });
 
@@ -134,7 +141,7 @@ async function syncProfile(entry: {
 }): Promise<void> {
   const { operation, payload } = entry;
 
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from('artisans')
     .upsert(payload);
 

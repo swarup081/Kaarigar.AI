@@ -1,0 +1,41 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_AI_GATEWAY_URL": "http://192.168.31.217:8000"
+      }
+    },
+
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_AI_GATEWAY_URL": "https://REPLACE-WITH-YOUR-DEPLOYED-URL"
+      }
+    },
+
+    "production": {
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_AI_GATEWAY_URL": "https://REPLACE-WITH-YOUR-DEPLOYED-URL"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

@@ -1,0 +1,362 @@
+[
+  {
+    "name": "Banaras Brocades and Sarees",
+    "category": "textile",
+    "region": "Varanasi",
+    "state": "Uttar Pradesh"
+  },
+  {
+    "name": "Kanchipuram Silk",
+    "category": "textile",
+    "region": "Kanchipuram",
+    "state": "Tamil Nadu"
+  },
+  {
+    "name": "Pochampally Ikat",
+    "category": "textile",
+    "region": "Bhoodan Pochampally",
+    "state": "Telangana"
+  },
+  {
+    "name": "Chanderi Sarees",
+    "category": "textile",
+    "region": "Chanderi",
+    "state": "Madhya Pradesh"
+  },
+  {
+    "name": "Maheshwar Sarees and Fabrics",
+    "category": "textile",
+    "region": "Maheshwar",
+    "state": "Madhya Pradesh"
+  },
+  {
+    "name": "Baluchari Saree",
+    "category": "textile",
+    "region": "Bishnupur",
+    "state": "West Bengal"
+  },
+  {
+    "name": "Santipore Saree",
+    "category": "textile",
+    "region": "Shantipur",
+    "state": "West Bengal"
+  },
+  {
+    "name": "Jamdani Saree",
+    "category": "textile",
+    "region": "Nadia",
+    "state": "West Bengal"
+  },
+  {
+    "name": "Muga Silk of Assam",
+    "category": "textile",
+    "region": "Assam",
+    "state": "Assam"
+  },
+  {
+    "name": "Pashmina",
+    "category": "textile",
+    "region": "Kashmir",
+    "state": "Jammu and Kashmir"
+  },
+  {
+    "name": "Kullu Shawl",
+    "category": "textile",
+    "region": "Kullu",
+    "state": "Himachal Pradesh"
+  },
+  {
+    "name": "Patan Patola",
+    "category": "textile",
+    "region": "Patan",
+    "state": "Gujarat"
+  },
+  {
+    "name": "Bagh Prints",
+    "category": "textile",
+    "region": "Bagh",
+    "state": "Madhya Pradesh"
+  },
+  {
+    "name": "Sanganeri Hand Block Print",
+    "category": "textile",
+    "region": "Sanganer",
+    "state": "Rajasthan"
+  },
+  {
+    "name": "Bagru Hand Block Print",
+    "category": "textile",
+    "region": "Bagru",
+    "state": "Rajasthan"
+  },
+  {
+    "name": "Kota Doria",
+    "category": "textile",
+    "region": "Kota",
+    "state": "Rajasthan"
+  },
+  {
+    "name": "Venkatagiri Sarees",
+    "category": "textile",
+    "region": "Venkatagiri",
+    "state": "Andhra Pradesh"
+  },
+  {
+    "name": "Mysore Silk",
+    "category": "textile",
+    "region": "Mysore",
+    "state": "Karnataka"
+  },
+  {
+    "name": "Ilkal Sarees",
+    "category": "textile",
+    "region": "Ilkal",
+    "state": "Karnataka"
+  },
+  {
+    "name": "Sambalpuri Bandha Saree",
+    "category": "textile",
+    "region": "Sambalpur",
+    "state": "Odisha"
+  },
+  {
+    "name": "Kasaragod Sarees",
+    "category": "textile",
+    "region": "Kasaragod",
+    "state": "Kerala"
+  },
+  {
+    "name": "Solapur Chaddar",
+    "category": "textile",
+    "region": "Solapur",
+    "state": "Maharashtra"
+  },
+  {
+    "name": "Paithani Sarees and Fabrics",
+    "category": "textile",
+    "region": "Paithan",
+    "state": "Maharashtra"
+  },
+  {
+    "name": "Lucknow Chikan Craft",
+    "category": "embroidery",
+    "region": "Lucknow",
+    "state": "Uttar Pradesh"
+  },
+  {
+    "name": "Kutch Embroidery",
+    "category": "embroidery",
+    "region": "Kutch",
+    "state": "Gujarat"
+  },
+  {
+    "name": "Kashmir Sozani Craft",
+    "category": "embroidery",
+    "region": "Kashmir",
+    "state": "Jammu and Kashmir"
+  },
+  {
+    "name": "Phulkari",
+    "category": "embroidery",
+    "region": "Punjab",
+    "state": "Punjab"
+  },
+  {
+    "name": "Kasuti Embroidery",
+    "category": "embroidery",
+    "region": "Dharwad",
+    "state": "Karnataka"
+  },
+  {
+    "name": "Khurja Pottery",
+    "category": "pottery",
+    "region": "Khurja",
+    "state": "Uttar Pradesh"
+  },
+  {
+    "name": "Blue Pottery of Jaipur",
+    "category": "pottery",
+    "region": "Jaipur",
+    "state": "Rajasthan"
+  },
+  {
+    "name": "Molela Clay Work",
+    "category": "pottery",
+    "region": "Molela",
+    "state": "Rajasthan"
+  },
+  {
+    "name": "Black Pottery of Manipur",
+    "category": "pottery",
+    "region": "Longpi",
+    "state": "Manipur"
+  },
+  {
+    "name": "Moradabad Metal Craft",
+    "category": "metalwork",
+    "region": "Moradabad",
+    "state": "Uttar Pradesh"
+  },
+  {
+    "name": "Bidriware",
+    "category": "metalwork",
+    "region": "Bidar",
+    "state": "Karnataka"
+  },
+  {
+    "name": "Thanjavur Art Plate",
+    "category": "metalwork",
+    "region": "Thanjavur",
+    "state": "Tamil Nadu"
+  },
+  {
+    "name": "Dhokra Handicraft",
+    "category": "metalwork",
+    "region": "Bankura",
+    "state": "West Bengal"
+  },
+  {
+    "name": "Pembarthi Metal Craft",
+    "category": "metalwork",
+    "region": "Pembarthi",
+    "state": "Telangana"
+  },
+  {
+    "name": "Swamimalai Bronze Icons",
+    "category": "metalwork",
+    "region": "Swamimalai",
+    "state": "Tamil Nadu"
+  },
+  {
+    "name": "Channapatna Toys and Dolls",
+    "category": "woodwork",
+    "region": "Channapatna",
+    "state": "Karnataka"
+  },
+  {
+    "name": "Saharanpur Wood Craft",
+    "category": "woodwork",
+    "region": "Saharanpur",
+    "state": "Uttar Pradesh"
+  },
+  {
+    "name": "Kashmir Walnut Wood Carving",
+    "category": "woodwork",
+    "region": "Kashmir",
+    "state": "Jammu and Kashmir"
+  },
+  {
+    "name": "Nirmal Toys and Craft",
+    "category": "woodwork",
+    "region": "Nirmal",
+    "state": "Telangana"
+  },
+  {
+    "name": "Etikoppaka Toys",
+    "category": "woodwork",
+    "region": "Etikoppaka",
+    "state": "Andhra Pradesh"
+  },
+  {
+    "name": "Madhubani Paintings",
+    "category": "painting",
+    "region": "Mithila",
+    "state": "Bihar"
+  },
+  {
+    "name": "Pattachitra",
+    "category": "painting",
+    "region": "Puri",
+    "state": "Odisha"
+  },
+  {
+    "name": "Kalamkari",
+    "category": "painting",
+    "region": "Srikalahasti",
+    "state": "Andhra Pradesh"
+  },
+  {
+    "name": "Warli Painting",
+    "category": "painting",
+    "region": "Palghar",
+    "state": "Maharashtra"
+  },
+  {
+    "name": "Thanjavur Paintings",
+    "category": "painting",
+    "region": "Thanjavur",
+    "state": "Tamil Nadu"
+  },
+  {
+    "name": "Gond Painting",
+    "category": "painting",
+    "region": "Mandla",
+    "state": "Madhya Pradesh"
+  },
+  {
+    "name": "Kalighat Painting",
+    "category": "painting",
+    "region": "Kolkata",
+    "state": "West Bengal"
+  },
+  {
+    "name": "Agra Marble Inlay Work",
+    "category": "stone_carving",
+    "region": "Agra",
+    "state": "Uttar Pradesh"
+  },
+  {
+    "name": "Mahabalipuram Stone Sculpture",
+    "category": "stone_carving",
+    "region": "Mahabalipuram",
+    "state": "Tamil Nadu"
+  },
+  {
+    "name": "Konark Stone Carving",
+    "category": "stone_carving",
+    "region": "Konark",
+    "state": "Odisha"
+  },
+  {
+    "name": "Temple Jewellery of Nagercoil",
+    "category": "jewelry",
+    "region": "Nagercoil",
+    "state": "Tamil Nadu"
+  },
+  {
+    "name": "Silver Filigree of Karimnagar",
+    "category": "jewelry",
+    "region": "Karimnagar",
+    "state": "Telangana"
+  },
+  {
+    "name": "Kolhapuri Chappal",
+    "category": "leather",
+    "region": "Kolhapur",
+    "state": "Maharashtra"
+  },
+  {
+    "name": "Indore Leather Toys",
+    "category": "leather",
+    "region": "Indore",
+    "state": "Madhya Pradesh"
+  },
+  {
+    "name": "Sandur Lambani Embroidery",
+    "category": "embroidery",
+    "region": "Sandur",
+    "state": "Karnataka"
+  },
+  {
+    "name": "Kerala Screw Pine Craft",
+    "category": "bamboo",
+    "region": "Alappuzha",
+    "state": "Kerala"
+  },
+  {
+    "name": "Nagaland Bamboo Craft",
+    "category": "bamboo",
+    "region": "Nagaland",
+    "state": "Nagaland"
+  }
+]

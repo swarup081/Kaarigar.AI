@@ -1,15 +1,17 @@
 // ============================================
 // Kaarigar — AI Service API Client
-// Calls the AI gateway (Supabase Edge Function), which proxies
-// to the FastAPI services in apps/ai-services.
+// Standalone mode calls Gemini directly and calculates prices on-device.
+// An optional HTTPS gateway mode supports existing hosted deployments.
 //
 // Image enhancement is NOT here. It runs on the phone, in
 // services/image/. See docs/AI_INTEGRATION.md.
 // ============================================
 
 import type { LanguageCode } from '@kaarigar/shared-types';
-
-const AI_GATEWAY_URL = process.env.EXPO_PUBLIC_AI_GATEWAY_URL ?? '';
+import { getRuntimeSettings, type RuntimeSettings } from '../config/settings';
+import { AIServiceError, type RequestOptions } from './errors';
+import { directVoiceToListing, directSuggestPrice } from './directAI';
+export { AIServiceError } from './errors';
 
 // ─── Response shapes ─────────────────────────
 // These mirror what the services actually emit. They are camelCase
@@ -82,30 +84,6 @@ export interface PricingResult {
 
 // ─── Errors ──────────────────────────────────
 
-export class AIServiceError extends Error {
-  constructor(
-    /** Service error code, e.g. AUDIO_TOO_NOISY. NETWORK and TIMEOUT are added here. */
-    public code: string,
-    /** English detail, for logs. Screens should translate `code` instead. */
-    message: string,
-    public statusCode = 0
-  ) {
-    super(message);
-    this.name = 'AIServiceError';
-  }
-
-  /** Whether trying the same request again could plausibly work. */
-  get isRetryable(): boolean {
-    return ['NETWORK', 'TIMEOUT', 'LLM_FAILED', 'AI_SERVICE_UNAVAILABLE'].includes(this.code);
-  }
-}
-
-interface RequestOptions {
-  authToken?: string;
-  timeoutMs?: number;
-  signal?: AbortSignal;
-}
-
 /** React Native's FormData wants this shape for a file, not a Blob. */
 function filePart(uri: string, name: string, type: string) {
   return { uri, name, type } as unknown as Blob;
@@ -153,7 +131,10 @@ function postMultipart(
       reject(error);
     };
 
-    signal?.addEventListener('abort', () => request.abort());
+    const abort = () => request.abort();
+    request.onloadend = () => signal?.removeEventListener('abort', abort);
+    if (signal?.aborted) { reject(new AIServiceError('CANCELLED', 'Request cancelled.')); return; }
+    signal?.addEventListener('abort', abort);
     request.send(form);
   });
 }
@@ -161,23 +142,29 @@ function postMultipart(
 async function callGateway(
   endpoint: string,
   init: { method: string; body: FormData | string; contentTypeJson?: boolean },
-  options: RequestOptions
+  options: RequestOptions,
+  settings: RuntimeSettings,
 ): Promise<unknown> {
-  if (!AI_GATEWAY_URL) {
-    throw new AIServiceError('NOT_CONFIGURED', 'EXPO_PUBLIC_AI_GATEWAY_URL is not set');
+  const gatewayUrl = settings.gatewayUrl.replace(/\/+$/, '');
+  if (!gatewayUrl) {
+    throw new AIServiceError('NOT_CONFIGURED', 'Open Profile → API & environment to configure your connection.');
   }
+  if (!gatewayUrl.startsWith('https://')) throw new AIServiceError('NOT_CONFIGURED', 'The hosted API must use HTTPS. Use standalone mode for direct Gemini access.');
+  if (options.signal?.aborted) throw new AIServiceError('CANCELLED', 'Request cancelled.');
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 30000);
-  options.signal?.addEventListener('abort', () => controller.abort());
+  const abort = () => controller.abort();
+  options.signal?.addEventListener('abort', abort);
 
   const headers: Record<string, string> = {};
   if (init.contentTypeJson) headers['Content-Type'] = 'application/json';
-  if (options.authToken) headers['Authorization'] = `Bearer ${options.authToken}`;
+  const token = options.authToken || settings.gatewayToken;
+  if (token) headers['Authorization'] = `Bearer ${token}`;
   // Never set Content-Type for FormData. The runtime must add its own
   // multipart boundary, and overriding it makes the server reject the body.
 
-  const url = `${AI_GATEWAY_URL}${endpoint}`;
+  const url = `${gatewayUrl}${endpoint}`;
   let status: number;
   let text: string;
 
@@ -188,7 +175,7 @@ async function callGateway(
         init.body,
         headers,
         options.timeoutMs ?? 30000,
-        options.signal
+        controller.signal
       );
       status = result.status;
       text = result.text;
@@ -203,8 +190,9 @@ async function callGateway(
       text = await response.text();
     }
   } catch (error) {
-    clearTimeout(timeout);
+    if (error instanceof AIServiceError) throw error;
     if ((error as Error).name === 'AbortError') {
+      if (options.signal?.aborted) throw new AIServiceError('CANCELLED', 'Request cancelled.');
       throw new AIServiceError('TIMEOUT', 'The AI service took too long to respond', 408);
     }
     // Keep the underlying cause. A bare "network error" is untraceable in the
@@ -212,8 +200,10 @@ async function callGateway(
     const cause = (error as Error)?.message ?? String(error);
     console.warn(`[ai] ${init.method} ${url} failed: ${cause}`);
     throw new AIServiceError('NETWORK', `Could not reach the AI service: ${cause}`);
+  } finally {
+    clearTimeout(timeout);
+    options.signal?.removeEventListener('abort', abort);
   }
-  clearTimeout(timeout);
   let payload: any;
   try {
     payload = JSON.parse(text);
@@ -255,6 +245,8 @@ export async function voiceToListing(
   params: VoiceToListingParams,
   options: RequestOptions = {}
 ): Promise<VoiceToListingResult> {
+  const settings = await getRuntimeSettings();
+  if (settings.aiMode === 'direct') return directVoiceToListing(params, settings, options);
   const form = new FormData();
 
   const audioName = params.audioUri.split('/').pop() || 'voice.m4a';
@@ -288,7 +280,8 @@ export async function voiceToListing(
     { method: 'POST', body: form },
     // Speech plus generation in one call. Measured around 20 seconds, so the
     // ceiling is generous; the screen shows progress rather than blocking.
-    { ...options, timeoutMs: options.timeoutMs ?? 90000 }
+    { ...options, timeoutMs: options.timeoutMs ?? 90000 },
+    settings,
   )) as any;
 
   return {
@@ -326,10 +319,13 @@ export async function suggestPrice(
   params: PricingParams,
   options: RequestOptions = {}
 ): Promise<PricingResult> {
+  const settings = await getRuntimeSettings();
+  if (settings.aiMode === 'direct') return directSuggestPrice(params, settings, options);
   const payload = (await callGateway(
     '/suggest-price',
     { method: 'POST', body: JSON.stringify(params), contentTypeJson: true },
-    { ...options, timeoutMs: options.timeoutMs ?? 45000 }
+    { ...options, timeoutMs: options.timeoutMs ?? 45000 },
+    settings,
   )) as PricingResult;
 
   return payload;

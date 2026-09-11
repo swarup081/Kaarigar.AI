@@ -14,49 +14,19 @@
 // ============================================
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import Constants from 'expo-constants';
+import type { RuntimeSettings } from '../config/settings';
 
-const SUPABASE_URL =
-  Constants.expoConfig?.extra?.supabaseUrl ?? process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const SUPABASE_ANON_KEY =
-  Constants.expoConfig?.extra?.supabaseAnonKey ?? process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
-
-/** Whether a backend is configured at all. Check before queueing a sync. */
-export function isSupabaseConfigured(): boolean {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+export function isSupabaseConfigured(settings: RuntimeSettings): boolean {
+  return Boolean(settings.supabaseUrl && settings.supabaseAnonKey);
 }
 
-let client: SupabaseClient | null = null;
-
-/**
- * Returns the client, building it on first use.
- *
- * Throws if no backend is configured. Callers should either check
- * `isSupabaseConfigured()` first or let the outbox retry later, which is what
- * the sync service does.
- */
-export function getSupabase(): SupabaseClient {
-  if (!isSupabaseConfigured()) {
-    throw new Error(
-      'Supabase is not configured. Set EXPO_PUBLIC_SUPABASE_URL and ' +
-        'EXPO_PUBLIC_SUPABASE_ANON_KEY in apps/mobile/.env to enable syncing.'
-    );
-  }
-
-  if (!client) {
-    client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        // We use Firebase for auth, so disable Supabase auth auto-refresh
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
-    });
-  }
-
-  return client;
+// Each sync run keeps one immutable destination, even if settings change mid-upload.
+export function getSupabase(settings: RuntimeSettings): SupabaseClient {
+  if (!isSupabaseConfigured(settings)) throw new Error('Configure cloud storage in Profile → API & environment.');
+  return createClient(settings.supabaseUrl, settings.supabaseAnonKey, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
 }
-
 // Storage bucket names
 export const STORAGE_BUCKETS = {
   PRODUCT_IMAGES: 'product-images',

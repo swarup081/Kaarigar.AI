@@ -1,3 +1,5 @@
+> **Standalone app:** The current app calls Gemini directly and no longer requires the laptop services described below. See [Standalone setup and build](STANDALONE_APP.md). The rest of this document describes the optional legacy gateway workflow.
+
 # AI Integration Guide
 
 How images, audio and the language model fit together, and how to run the whole

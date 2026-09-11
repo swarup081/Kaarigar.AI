@@ -25,10 +25,10 @@ Kaarigar is the **missing "listing creation & pricing intelligence" layer** that
 
 | Layer | Technology |
 |---|---|
-| Mobile | React Native + Expo SDK 52+ (TypeScript) |
-| Auth | Firebase Phone Auth (free 10K SMS/month) |
+| Mobile | React Native + Expo SDK 57 (TypeScript) |
+| Auth | Firebase phone auth planned; local artisan identity currently used |
 | Backend | Supabase (Postgres + Storage + Edge Functions) |
-| AI Services | Python/FastAPI (separate microservices) |
+| AI | Direct Gemini HTTPS calls + on-phone listing/pricing logic; optional hosted Python APIs |
 | Offline | expo-sqlite + outbox sync pattern |
 | Languages | Hindi, English, Tamil, Bengali |
 
@@ -73,8 +73,11 @@ cd apps/backend && npx supabase start
 
 ## AI Pipeline
 
-Image enhancement runs **on the phone** and works offline. Speech, listing
-generation and pricing run through Gemini behind the AI gateway.
+Image enhancement and cost-based pricing run **on the phone**. The standalone app
+calls Gemini directly over the internet for speech, bilingual listings and pricing advice.
+Configure keys and connections under **Profile → API & environment**. No laptop server is needed.
+
+- **[Standalone APK setup and build](docs/STANDALONE_APP.md)** — current mobile workflow
 
 - **[docs/RUNNING_ON_A_PHONE.md](docs/RUNNING_ON_A_PHONE.md)** — build and run on a real device
 - [docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md) — how the pipeline fits together
@@ -88,9 +91,11 @@ GEMINI_API_KEY=your_key python apps/ai-services/smoke_test.py
 ## Architecture
 
 ```
-Mobile App (Expo) → Supabase Edge Functions (Gateway) → AI Services (Friend's Server)
-       ↕                      ↕
-   SQLite (offline)     Supabase Postgres + Storage
+Standalone Mobile App → Google Gemini (HTTPS)
+       ↕
+   SQLite + native images + local pricing
+       ↕ (optional)
+   Supabase / hosted API gateway
 ```
 
 ## License

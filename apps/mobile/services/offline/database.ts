@@ -4,25 +4,30 @@
 // ============================================
 
 import * as SQLite from 'expo-sqlite';
+import { defaultSettings, getRuntimeSettings } from '../config/settings';
 
 const DB_NAME = 'kaarigar.db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let db: SQLite.SQLiteDatabase | null = null;
+let opening: Promise<SQLite.SQLiteDatabase> | null = null;
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   if (db) return db;
-
-  db = await SQLite.openDatabaseAsync(DB_NAME);
-
-  // Enable WAL mode for better concurrent access
-  await db.execAsync('PRAGMA journal_mode = WAL;');
-  await db.execAsync('PRAGMA foreign_keys = ON;');
-
-  // Run migrations
-  await runMigrations(db);
-
-  return db;
+  if (!opening) opening = (async () => {
+    const database = await SQLite.openDatabaseAsync(DB_NAME);
+    try {
+      await database.execAsync('PRAGMA journal_mode = WAL;');
+      await database.execAsync('PRAGMA foreign_keys = ON;');
+      await runMigrations(database);
+      db = database;
+      return database;
+    } catch (error) {
+      await database.closeAsync();
+      throw error;
+    } finally { opening = null; }
+  })();
+  return opening;
 }
 
 async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
@@ -127,6 +132,13 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
       PRAGMA user_version = 1;
     `);
   }
+  if (currentVersion < 2) {
+    await database.withTransactionAsync(async () => {
+      await database.execAsync('ALTER TABLE sync_outbox ADD COLUMN backend_url TEXT;');
+      await database.runAsync('UPDATE sync_outbox SET backend_url = ?', [defaultSettings().supabaseUrl.replace(/\/+$/, '')]);
+      await database.execAsync(`PRAGMA user_version = ${DB_VERSION};`);
+    });
+  }
 }
 
 // ─── Product CRUD ─────────────────────────────
@@ -220,9 +232,10 @@ export async function deleteLocalProduct(localId: string): Promise<void> {
 
 export async function addToOutbox(entry: OutboxEntry): Promise<void> {
   const db = await getDatabase();
+  const settings = await getRuntimeSettings();
   await db.runAsync(
-    `INSERT INTO sync_outbox (id, entity_type, entity_local_id, operation, payload, media_paths, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'pending', datetime('now'))`,
+    `INSERT INTO sync_outbox (id, entity_type, entity_local_id, operation, payload, media_paths, backend_url, status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'))`,
     [
       entry.id,
       entry.entityType,
@@ -230,6 +243,7 @@ export async function addToOutbox(entry: OutboxEntry): Promise<void> {
       entry.operation,
       JSON.stringify(entry.payload),
       entry.mediaPaths ? JSON.stringify(entry.mediaPaths) : null,
+      (entry.backendUrl ?? settings.supabaseUrl).replace(/\/+$/, ''),
     ]
   );
 }
@@ -249,7 +263,17 @@ export async function getPendingOutboxEntries(): Promise<OutboxEntry[]> {
     status: row.status as string,
     retryCount: row.retry_count as number,
     createdAt: row.created_at as string,
+    backendUrl: row.backend_url as string | undefined,
   }));
+}
+
+/** Bind local-only uploads once, before making any network requests. */
+export async function bindUnassignedOutbox(backendUrl: string): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync(
+    "UPDATE sync_outbox SET backend_url = ? WHERE (backend_url IS NULL OR backend_url = '') AND status != 'synced'",
+    [backendUrl.replace(/\/+$/, '')],
+  );
 }
 
 export async function markOutboxSynced(id: string): Promise<void> {
@@ -334,6 +358,7 @@ export interface LocalProduct {
 }
 
 export interface OutboxEntry {
+  backendUrl?: string;
   id: string;
   entityType: string;
   entityLocalId: string;

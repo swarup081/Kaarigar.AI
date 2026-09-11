@@ -30,7 +30,7 @@
  * same CMake is installed.
  */
 
-const { withAppBuildGradle } = require('expo/config-plugins');
+const { withAppBuildGradle, withProjectBuildGradle } = require('expo/config-plugins');
 
 const DEFAULT_VERSION = '4.1.2';
 
@@ -40,6 +40,32 @@ const DEFAULT_VERSION = '4.1.2';
  */
 module.exports = function withCmakeVersion(config, options = {}) {
   const version = options.version ?? DEFAULT_VERSION;
+
+  config = withProjectBuildGradle(config, (modConfig) => {
+    // Each native dependency is its own Android project. Pinning only :app
+    // leaves Expo/Reanimated/Worklets on the SDK's old default Ninja.
+    const marker = '// kaarigar:all-native-cmake';
+    const block = `
+${marker}
+subprojects { nativeProject ->
+  ['com.android.application', 'com.android.library'].each { pluginId ->
+    nativeProject.plugins.withId(pluginId) {
+      nativeProject.extensions.getByName('androidComponents').finalizeDsl { androidDsl ->
+        androidDsl.externalNativeBuild.cmake.version = "${version}"
+        // Some dependencies still declare CMake 3.4; CMake 4 needs an explicit policy floor.
+        androidDsl.defaultConfig.externalNativeBuild.cmake.arguments.add('-DCMAKE_POLICY_VERSION_MINIMUM=3.5')
+      }
+    }
+  }
+}
+// kaarigar:all-native-cmake-end
+`;
+    const current = modConfig.modResults.contents;
+    modConfig.modResults.contents = current.includes(marker)
+      ? current.replace(/\/\/ kaarigar:all-native-cmake\r?\n[\s\S]*?\/\/ kaarigar:all-native-cmake-end\r?\n?/, block.trimStart())
+      : current + block;
+    return modConfig;
+  });
 
   return withAppBuildGradle(config, (modConfig) => {
     let contents = modConfig.modResults.contents;

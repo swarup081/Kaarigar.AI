@@ -1,3 +1,5 @@
+> **Standalone app:** The current app calls Gemini directly and no longer requires the laptop services described below. See [Standalone setup and build](STANDALONE_APP.md). The rest of this document describes the optional legacy gateway workflow.
+
 # Running Kaarigar on a real phone
 
 Everything here was done end to end on a Motorola Edge 60 Pro running Android 16,

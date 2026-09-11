@@ -3,26 +3,37 @@
 // Processes the outbox queue when connectivity returns
 // ============================================
 
-import { getPendingOutboxEntries, markOutboxSynced, markOutboxError } from './database';
+import { getPendingOutboxEntries, markOutboxSynced, markOutboxError, bindUnassignedOutbox } from './database';
 import { getSupabase, isSupabaseConfigured, STORAGE_BUCKETS } from '../api/supabaseClient';
 import { File } from 'expo-file-system';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getRuntimeSettings } from '../config/settings';
 
 const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 5000;
+let syncRun: Promise<{ synced: number; failed: number }> | null = null;
 
-export async function processSyncQueue(): Promise<{ synced: number; failed: number }> {
+export function processSyncQueue(): Promise<{ synced: number; failed: number }> {
+  if (!syncRun) syncRun = runSyncQueue().finally(() => { syncRun = null; });
+  return syncRun;
+}
+
+async function runSyncQueue(): Promise<{ synced: number; failed: number }> {
   // No backend configured yet. Leave the outbox untouched so the work syncs
   // once someone fills in the Supabase keys, rather than exhausting retries.
-  if (!isSupabaseConfigured()) {
+  const settings = await getRuntimeSettings();
+  if (!isSupabaseConfigured(settings)) {
     console.warn('[sync] Supabase not configured, leaving the queue for later');
     return { synced: 0, failed: 0 };
   }
 
+  const supabase = getSupabase(settings);
+  await bindUnassignedOutbox(settings.supabaseUrl);
   const entries = await getPendingOutboxEntries();
   let synced = 0;
   let failed = 0;
 
   for (const entry of entries) {
+    if (entry.backendUrl !== settings.supabaseUrl.replace(/\/+$/, '')) continue;
     if ((entry.retryCount ?? 0) >= MAX_RETRIES) {
       await markOutboxError(entry.id, 'Max retries exceeded');
       failed++;
@@ -32,13 +43,13 @@ export async function processSyncQueue(): Promise<{ synced: number; failed: numb
     try {
       switch (entry.entityType) {
         case 'product':
-          await syncProduct(entry);
+          await syncProduct(entry, supabase);
           break;
         case 'media':
-          await syncMedia(entry);
+          await syncMedia(entry, supabase);
           break;
         case 'profile':
-          await syncProfile(entry);
+          await syncProfile(entry, supabase);
           break;
         default:
           console.warn(`Unknown entity type: ${entry.entityType}`);
@@ -60,12 +71,12 @@ async function syncProduct(entry: {
   operation: string;
   payload: Record<string, unknown>;
   entityLocalId: string;
-}): Promise<void> {
+}, supabase: SupabaseClient): Promise<void> {
   const { operation, payload, entityLocalId } = entry;
 
   switch (operation) {
     case 'create': {
-      const { data, error } = await getSupabase()
+      const { data, error } = await supabase
         .from('products')
         .insert(payload)
         .select('id')
@@ -78,7 +89,7 @@ async function syncProduct(entry: {
       break;
     }
     case 'update': {
-      const { error } = await getSupabase()
+      const { error } = await supabase
         .from('products')
         .update(payload)
         .eq('id', payload.id);
@@ -87,7 +98,7 @@ async function syncProduct(entry: {
       break;
     }
     case 'delete': {
-      const { error } = await getSupabase()
+      const { error } = await supabase
         .from('products')
         .delete()
         .eq('id', payload.id);
@@ -101,7 +112,7 @@ async function syncProduct(entry: {
 async function syncMedia(entry: {
   payload: Record<string, unknown>;
   mediaPaths?: string[];
-}): Promise<void> {
+}, supabase: SupabaseClient): Promise<void> {
   const { payload, mediaPaths } = entry;
   if (!mediaPaths || mediaPaths.length === 0) return;
 
@@ -127,7 +138,7 @@ async function syncMedia(entry: {
           ? 'audio/m4a'
           : 'image/jpeg');
 
-    const { error } = await getSupabase().storage
+    const { error } = await supabase.storage
       .from(bucket)
       .upload(storagePath, bytes, { contentType, upsert: true });
 
@@ -138,10 +149,10 @@ async function syncMedia(entry: {
 async function syncProfile(entry: {
   operation: string;
   payload: Record<string, unknown>;
-}): Promise<void> {
+}, supabase: SupabaseClient): Promise<void> {
   const { operation, payload } = entry;
 
-  const { error } = await getSupabase()
+  const { error } = await supabase
     .from('artisans')
     .upsert(payload);
 

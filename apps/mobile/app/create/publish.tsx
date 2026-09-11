@@ -17,6 +17,7 @@ import { Feather } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { CHANNELS } from '@/constants/channels';
 import { saveListing } from '@/services/offline/saveListing';
+import { currentArtisanId } from '@/services/offline/artisan';
 import { processSyncQueue } from '@/services/offline/syncService';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useActiveListingStore, useAuthStore, useSyncStore } from '@/stores';
@@ -70,7 +71,7 @@ export default function PublishScreen() {
     setPhase('saving');
     try {
       const result = await saveListing({
-        artisanId: profile?.id ?? 'local',
+        artisanId: currentArtisanId(profile?.id),
         language,
         listing,
         transcript,

@@ -240,7 +240,9 @@
     "shareAsLink": "Share storefront link",
     "shareAsPdf": "Share as PDF catalog",
     "shareAsImage": "Share as image",
-    "emptyState": "No products yet"
+    "emptyState": "No products yet",
+    "empty": "No products yet",
+    "addFirst": "Add your first product"
   },
   "profile": {
     "title": "Profile",

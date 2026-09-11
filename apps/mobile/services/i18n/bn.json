@@ -198,7 +198,9 @@
     "all": "All",
     "shareAsLink": "Share storefront link",
     "shareAsPdf": "Share as PDF catalog",
-    "shareAsImage": "Share as image"
+    "shareAsImage": "Share as image",
+    "empty": "এখনও কোনো পণ্য নেই",
+    "addFirst": "আপনার প্রথম পণ্য যোগ করুন"
   },
   "profile": {
     "title": "প্রোফাইল",

@@ -198,7 +198,9 @@
     "all": "All",
     "shareAsLink": "Share storefront link",
     "shareAsPdf": "Share as PDF catalog",
-    "shareAsImage": "Share as image"
+    "shareAsImage": "Share as image",
+    "empty": "இதுவரை பொருட்கள் இல்லை",
+    "addFirst": "உங்கள் முதல் பொருளைச் சேர்க்கவும்"
   },
   "profile": {
     "title": "சுயவிவரம்",

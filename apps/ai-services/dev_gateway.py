@@ -19,6 +19,7 @@ ships. Deploy the edge function for anything real.
 
 from __future__ import annotations
 
+import asyncio
 import os
 import socket
 
@@ -51,19 +52,61 @@ def lan_ip() -> str:
         return "127.0.0.1"
 
 
+@app.get("/")
+async def root() -> Response:
+    """Opening the gateway in a browser should explain itself.
+
+    The catch-all below only accepts POST, so without this a browser visit
+    returns a bare 405 and looks broken. Anyone checking the address works
+    before pointing a phone at it deserves a straight answer.
+    """
+    status = await health()
+    lines = [f"  {path:<20} {state}" for path, state in status["services"].items()]
+    body = (
+        "Kaarigar dev gateway\n"
+        "====================\n\n"
+        f"Reachable at : {status['reachable_at']}\n"
+        "Put that address in apps/mobile/.env as EXPO_PUBLIC_AI_GATEWAY_URL.\n\n"
+        "Services:\n" + "\n".join(lines) + "\n\n"
+        "enhance-image and text-to-speech are expected to be down.\n"
+        "Neither is built, and the app does not use them.\n\n"
+        "Endpoints are POST only. Machine-readable status: /health\n"
+    )
+    return Response(content=body, media_type="text/plain")
+
+
+@app.get("/favicon.ico")
+async def favicon() -> Response:
+    """Silences the browser's automatic favicon request."""
+    return Response(status_code=204)
+
+
 @app.get("/health")
 async def health() -> dict:
-    """Reports which services are actually up, so a 404 is easy to diagnose."""
-    status = {}
-    async with httpx.AsyncClient(timeout=2) as client:
-        for path, target in ROUTES.items():
-            base = target.rsplit("/api/", 1)[0]
-            try:
-                response = await client.get(f"{base}/health")
-                status[path] = "up" if response.status_code == 200 else f"http {response.status_code}"
-            except httpx.HTTPError:
-                status[path] = "down"
-    return {"gateway": "ok", "reachable_at": f"http://{lan_ip()}:8000", "services": status}
+    """Reports which services are actually up, so a 404 is easy to diagnose.
+
+    Probes run concurrently. Checking them one by one meant waiting out the
+    connect timeout for every service that is down, and two of the four are
+    expected to be down, so the endpoint took longer than a sensible client
+    timeout and looked dead itself.
+    """
+
+    async def probe(client: httpx.AsyncClient, target: str) -> str:
+        base = target.rsplit("/api/", 1)[0]
+        try:
+            response = await client.get(f"{base}/health")
+            return "up" if response.status_code == 200 else f"http {response.status_code}"
+        except httpx.HTTPError:
+            return "down"
+
+    async with httpx.AsyncClient(timeout=1.5) as client:
+        results = await asyncio.gather(*(probe(client, t) for t in ROUTES.values()))
+
+    return {
+        "gateway": "ok",
+        "reachable_at": f"http://{lan_ip()}:8000",
+        "services": dict(zip(ROUTES, results)),
+    }
 
 
 @app.api_route("/{path:path}", methods=["POST", "OPTIONS"])

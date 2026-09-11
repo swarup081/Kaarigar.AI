@@ -12,6 +12,7 @@ import { saveProductLocally, addToOutbox, type LocalProduct } from './database';
 import { STORAGE_BUCKETS } from '../api/supabaseClient';
 import type { GeneratedListing, PricingResult, Transcription } from '../api/ai';
 import type { LanguageCode } from '@kaarigar/shared-types';
+import { getRuntimeSettings } from '../config/settings';
 
 function id(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -48,6 +49,7 @@ export interface SaveListingResult {
  * two writes loses the sync queue, not the artisan's work.
  */
 export async function saveListing(input: SaveListingInput): Promise<SaveListingResult> {
+  const backendUrl = (await getRuntimeSettings()).supabaseUrl;
   const localId = id('product');
   const { listing, edits, pricing, language } = input;
   const attributes = listing.extractedAttributes;
@@ -124,6 +126,7 @@ export async function saveListing(input: SaveListingInput): Promise<SaveListingR
   if (input.imageUris.length > 0) {
     await addToOutbox({
       id: id('media'),
+      backendUrl,
       entityType: 'media',
       entityLocalId: localId,
       operation: 'upload',
@@ -140,6 +143,7 @@ export async function saveListing(input: SaveListingInput): Promise<SaveListingR
   if (input.voiceUri) {
     await addToOutbox({
       id: id('media'),
+      backendUrl,
       entityType: 'media',
       entityLocalId: localId,
       operation: 'upload',
@@ -156,6 +160,7 @@ export async function saveListing(input: SaveListingInput): Promise<SaveListingR
 
   await addToOutbox({
     id: id('sync'),
+    backendUrl,
     entityType: 'product',
     entityLocalId: localId,
     operation: 'create',

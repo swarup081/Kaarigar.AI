@@ -147,9 +147,14 @@ export default function PricingScreen() {
             <View style={styles.errorCard}>
               <Feather name="alert-circle" size={16} color={Colors.error} />
               <Text style={styles.errorText}>
-                {t(`pricing.errors.${error.code}`, t('common.error'))}
+                {t(`pricing.errors.${error.code}`, error.message)}
               </Text>
             </View>
+          )}
+          {error && ['NOT_CONFIGURED', 'INVALID_API_KEY', 'MODEL_UNAVAILABLE', 'INVALID_REQUEST', 'RATE_LIMITED'].includes(error.code) && (
+            <TouchableOpacity onPress={() => router.push('/settings')} style={styles.inputCard}>
+              <Text style={styles.inputLabel}>API & environment</Text>
+            </TouchableOpacity>
           )}
         </ScrollView>
 

@@ -46,6 +46,7 @@ apps/ai-services/**/.env
 Thumbs.db
 
 # Build
+artifacts/
 *.tsbuildinfo
 turbo/
 

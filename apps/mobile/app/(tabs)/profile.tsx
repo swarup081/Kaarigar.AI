@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { t, i18n } = useTranslation();
   const network = useNetworkStatus();
 
@@ -26,6 +27,7 @@ export default function ProfileScreen() {
   ];
 
   const menuItems = [
+    { icon: 'sliders', label: 'API & environment', action: 'environment' },
     { icon: 'edit-2', label: t('profile.editProfile', 'Edit Profile'), action: 'edit' },
     { icon: 'refresh-cw', label: t('profile.syncStatus', 'Sync Status'), action: 'sync', badge: network.isConnected ? 'check-circle' : 'wifi-off' },
     { icon: 'help-circle', label: t('profile.help', 'Help & Support'), action: 'help' },
@@ -40,7 +42,7 @@ export default function ProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profile</Text>
-          <TouchableOpacity style={styles.iconBtnOutline}>
+          <TouchableOpacity style={styles.iconBtnOutline} accessibilityLabel="API and environment settings" onPress={() => router.push('/settings')}>
             <Feather name="settings" size={18} color="#4B5563" />
           </TouchableOpacity>
         </View>
@@ -96,6 +98,7 @@ export default function ProfileScreen() {
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={item.action}
+                onPress={item.action === 'environment' ? () => router.push('/settings') : undefined}
                 style={[styles.menuItem, index < menuItems.length - 1 && styles.menuItemBorder]}
                 activeOpacity={0.7}
               >
@@ -123,7 +126,7 @@ export default function ProfileScreen() {
           <View style={[styles.statusDot, !network.isConnected && styles.statusDotOffline]} />
           <View>
             <Text style={styles.statusTitle}>
-              {network.isConnected ? 'Online & Synced' : 'Offline Mode'}
+              {network.isConnected ? 'Connected to internet' : 'Offline Mode'}
             </Text>
             <Text style={styles.statusText}>
               {network.isConnected

@@ -125,12 +125,17 @@ export default function ReviewScreen() {
     return (
       <View style={styles.centred}>
         <Feather name="alert-circle" size={48} color={Colors.warning} />
-        <Text style={styles.errorTitle}>{t(`review.errors.${error.code}`, t('common.error'))}</Text>
+        <Text style={styles.errorTitle}>{t(`review.errors.${error.code}`, error.message)}</Text>
         <View style={styles.errorActions}>
-          {error.isRetryable && (
+          {(error.isRetryable || ['NOT_CONFIGURED', 'INVALID_API_KEY', 'MODEL_UNAVAILABLE', 'INVALID_REQUEST'].includes(error.code)) && (
             <TouchableOpacity style={styles.primaryButton} onPress={generate}>
               <Feather name="refresh-cw" size={18} color={Colors.textOnPrimary} />
               <Text style={styles.primaryButtonText}>{t('common.retry')}</Text>
+            </TouchableOpacity>
+          )}
+          {['NOT_CONFIGURED', 'INVALID_API_KEY', 'MODEL_UNAVAILABLE', 'INVALID_REQUEST', 'RATE_LIMITED'].includes(error.code) && (
+            <TouchableOpacity style={styles.textButton} onPress={() => router.push('/settings')}>
+              <Text style={styles.textButtonText}>API & environment</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.textButton} onPress={() => router.back()}>

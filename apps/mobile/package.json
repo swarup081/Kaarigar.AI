@@ -20,6 +20,7 @@
     "expo-linking": "~57.0.9",
     "expo-print": "*",
     "expo-router": "~57.0.20",
+    "expo-secure-store": "~57.0.4",
     "expo-sensors": "*",
     "expo-sharing": "*",
     "expo-splash-screen": "~57.0.8",
@@ -46,6 +47,8 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
+    "test:standalone": "node --test tests/standalone.test.cjs",
+    "build:standalone": "powershell -ExecutionPolicy Bypass -File ../../scripts/build-standalone.ps1",
     "start": "expo start",
     "dev": "expo start",
     "android": "expo run:android",

@@ -75,12 +75,23 @@ export function readBitmap(image: SkImage, maxEdge = THRESHOLDS.analysisSize): B
  */
 function buildCorrectionPaint(stats: ImageQualityStats): SkPaint {
   const targetBrightness = 148;
-  const gain = Math.max(0.85, Math.min(1.6, targetBrightness / Math.max(stats.brightness, 1)));
+  // Capped at 1.25 rather than 1.6. A stronger lift drives saturated dyes past
+  // the top of a channel, and a red that loses all its green is no longer the
+  // colour the buyer will receive. Fidelity beats punch for a listing photo.
+  const gain = Math.max(0.9, Math.min(1.25, targetBrightness / Math.max(stats.brightness, 1)));
 
-  const contrast = 1.12;
-  const saturation = 1.12;
+  const contrast = 1.04;
+  const saturation = 1.05;
   // Offset keeps mid grey anchored while contrast scales around it.
-  const offset = 128 * (1 - contrast * gain);
+  //
+  // The division by 255 is load-bearing. Skia's colour matrix multiplies the
+  // RGB terms against normalised 0..1 channels, but adds the fifth column in
+  // those same normalised units. Writing the offset in 0..255 units subtracts
+  // something like 15 from a channel that never exceeds 1, so every pixel
+  // clamps to zero and the product renders as a solid black silhouette with
+  // its alpha intact. That is exactly what shipped, and it looked like a bad
+  // segmentation model rather than a unit error.
+  const offset = (128 * (1 - contrast * gain)) / 255;
 
   const lumaR = 0.2126;
   const lumaG = 0.7152;
